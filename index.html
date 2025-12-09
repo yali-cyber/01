@@ -222,8 +222,14 @@
                     winAmount = bet.player * 2;
                     winner = 'player';
                 } else if (bScore > pScore) {
-                    resultText = 'バンカーの勝ち!';
-                    winAmount = Math.floor(bet.banker * 1.95);
+                    // シックスバンカー制度: バンカーが6で勝利した場合は1.5倍、それ以外は2倍
+                    if (bScore === 6) {
+                        resultText = 'バンカーの勝ち! (6)';
+                        winAmount = Math.floor(bet.banker * 1.5);
+                    } else {
+                        resultText = 'バンカーの勝ち!';
+                        winAmount = bet.banker * 2;
+                    }
                     winner = 'banker';
                 } else {
                     resultText = 'タイ!';
@@ -657,7 +663,7 @@
                                         placeholder="0"
                                         className="w-full bg-red-700 text-white text-center text-lg font-bold py-2 rounded-lg border-2 border-red-400 focus:outline-none focus:border-white"
                                     />
-                                    <div className="text-xs text-red-200 mt-1">1.95倍</div>
+                                    <div className="text-xs text-red-200 mt-1">2倍 (6は1.5倍)</div>
                                 </div>
                                 <div className="bg-yellow-600 p-3 rounded-xl text-center">
                                     <div className="text-sm mb-2">タイ</div>
