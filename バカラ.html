@@ -1,0 +1,787 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+  <meta http-equiv="Content-Style-Type" content="text/css">
+  <title></title>
+  <meta name="Generator" content="Cocoa HTML Writer">
+  <meta name="CocoaVersion" content="2575.7">
+  <style type="text/css">
+    p.p1 {margin: 0.0px 0.0px 0.0px 0.0px; font: 12.0px Helvetica}
+    p.p2 {margin: 0.0px 0.0px 0.0px 0.0px; font: 12.0px Helvetica; min-height: 14.0px}
+  </style>
+</head>
+<body>
+<p class="p1">&lt;!DOCTYPE html&gt;</p>
+<p class="p1">&lt;html lang="ja"&gt;</p>
+<p class="p1">&lt;head&gt;</p>
+<p class="p1"><span class="Apple-converted-space">    </span>&lt;meta charset="UTF-8"&gt;</p>
+<p class="p1"><span class="Apple-converted-space">    </span>&lt;meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"&gt;</p>
+<p class="p1"><span class="Apple-converted-space">    </span>&lt;meta name="apple-mobile-web-app-capable" content="yes"&gt;</p>
+<p class="p1"><span class="Apple-converted-space">    </span>&lt;meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"&gt;</p>
+<p class="p1"><span class="Apple-converted-space">    </span>&lt;meta name="theme-color" content="#166534"&gt;</p>
+<p class="p1"><span class="Apple-converted-space">    </span>&lt;title&gt;バカラゲーム - 統計分析機能付き&lt;/title&gt;</p>
+<p class="p1"><span class="Apple-converted-space">    </span>&lt;script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"&gt;&lt;/script&gt;</p>
+<p class="p1"><span class="Apple-converted-space">    </span>&lt;script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"&gt;&lt;/script&gt;</p>
+<p class="p1"><span class="Apple-converted-space">    </span>&lt;script src="https://unpkg.com/@babel/standalone/babel.min.js"&gt;&lt;/script&gt;</p>
+<p class="p1"><span class="Apple-converted-space">    </span>&lt;script src="https://cdn.tailwindcss.com"&gt;&lt;/script&gt;</p>
+<p class="p1"><span class="Apple-converted-space">    </span>&lt;style&gt;</p>
+<p class="p1"><span class="Apple-converted-space">        </span>* {</p>
+<p class="p1"><span class="Apple-converted-space">            </span>-webkit-tap-highlight-color: transparent;</p>
+<p class="p1"><span class="Apple-converted-space">            </span>-webkit-touch-callout: none;</p>
+<p class="p1"><span class="Apple-converted-space">        </span>}</p>
+<p class="p1"><span class="Apple-converted-space">        </span>body {</p>
+<p class="p1"><span class="Apple-converted-space">            </span>margin: 0;</p>
+<p class="p1"><span class="Apple-converted-space">            </span>padding: 0;</p>
+<p class="p1"><span class="Apple-converted-space">            </span>font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Helvetica', 'Arial', sans-serif;</p>
+<p class="p1"><span class="Apple-converted-space">            </span>overflow-x: hidden;</p>
+<p class="p1"><span class="Apple-converted-space">            </span>-webkit-user-select: none;</p>
+<p class="p1"><span class="Apple-converted-space">            </span>user-select: none;</p>
+<p class="p1"><span class="Apple-converted-space">        </span>}</p>
+<p class="p1"><span class="Apple-converted-space">        </span>input {</p>
+<p class="p1"><span class="Apple-converted-space">            </span>-webkit-user-select: text;</p>
+<p class="p1"><span class="Apple-converted-space">            </span>user-select: text;</p>
+<p class="p1"><span class="Apple-converted-space">        </span>}</p>
+<p class="p1"><span class="Apple-converted-space">        </span>input[type="number"]::-webkit-inner-spin-button,</p>
+<p class="p1"><span class="Apple-converted-space">        </span>input[type="number"]::-webkit-outer-spin-button {</p>
+<p class="p1"><span class="Apple-converted-space">            </span>-webkit-appearance: none;</p>
+<p class="p1"><span class="Apple-converted-space">            </span>margin: 0;</p>
+<p class="p1"><span class="Apple-converted-space">        </span>}</p>
+<p class="p1"><span class="Apple-converted-space">        </span>input[type="number"] {</p>
+<p class="p1"><span class="Apple-converted-space">            </span>-moz-appearance: textfield;</p>
+<p class="p1"><span class="Apple-converted-space">        </span>}</p>
+<p class="p1"><span class="Apple-converted-space">        </span>button {</p>
+<p class="p1"><span class="Apple-converted-space">            </span>-webkit-tap-highlight-color: rgba(0, 0, 0, 0.1);</p>
+<p class="p1"><span class="Apple-converted-space">        </span>}</p>
+<p class="p1"><span class="Apple-converted-space">        </span>.modal-content {</p>
+<p class="p1"><span class="Apple-converted-space">            </span>max-height: 85vh;</p>
+<p class="p1"><span class="Apple-converted-space">            </span>overflow-y: auto;</p>
+<p class="p1"><span class="Apple-converted-space">            </span>-webkit-overflow-scrolling: touch;</p>
+<p class="p1"><span class="Apple-converted-space">        </span>}</p>
+<p class="p1"><span class="Apple-converted-space">    </span>&lt;/style&gt;</p>
+<p class="p1">&lt;/head&gt;</p>
+<p class="p1">&lt;body&gt;</p>
+<p class="p1"><span class="Apple-converted-space">    </span>&lt;div id="root"&gt;&lt;/div&gt;</p>
+<p class="p2"><br></p>
+<p class="p1"><span class="Apple-converted-space">    </span>&lt;script type="text/babel"&gt;</p>
+<p class="p1"><span class="Apple-converted-space">        </span>const { useState } = React;</p>
+<p class="p2"><br></p>
+<p class="p1"><span class="Apple-converted-space">        </span>const BaccaratGame = () =&gt; {</p>
+<p class="p1"><span class="Apple-converted-space">            </span>const [balance, setBalance] = useState(10000);</p>
+<p class="p1"><span class="Apple-converted-space">            </span>const [bet, setBet] = useState({ player: 0, banker: 0, tie: 0 });</p>
+<p class="p1"><span class="Apple-converted-space">            </span>const [gameState, setGameState] = useState('betting');</p>
+<p class="p1"><span class="Apple-converted-space">            </span>const [playerCards, setPlayerCards] = useState([]);</p>
+<p class="p1"><span class="Apple-converted-space">            </span>const [bankerCards, setBankerCards] = useState([]);</p>
+<p class="p1"><span class="Apple-converted-space">            </span>const [result, setResult] = useState('');</p>
+<p class="p1"><span class="Apple-converted-space">            </span>const [history, setHistory] = useState([]);</p>
+<p class="p1"><span class="Apple-converted-space">            </span>const [message, setMessage] = useState('賭け金を選択してください');</p>
+<p class="p1"><span class="Apple-converted-space">            </span>const [showBalanceModal, setShowBalanceModal] = useState(false);</p>
+<p class="p1"><span class="Apple-converted-space">            </span>const [balanceInput, setBalanceInput] = useState('');</p>
+<p class="p1"><span class="Apple-converted-space">            </span>const [showStatsModal, setShowStatsModal] = useState(false);</p>
+<p class="p1"><span class="Apple-converted-space">            </span>const [stats, setStats] = useState({</p>
+<p class="p1"><span class="Apple-converted-space">                </span>totalGames: 0,</p>
+<p class="p1"><span class="Apple-converted-space">                </span>playerWins: 0,</p>
+<p class="p1"><span class="Apple-converted-space">                </span>bankerWins: 0,</p>
+<p class="p1"><span class="Apple-converted-space">                </span>ties: 0,</p>
+<p class="p1"><span class="Apple-converted-space">                </span>totalProfit: 0,</p>
+<p class="p1"><span class="Apple-converted-space">                </span>totalBet: 0,</p>
+<p class="p1"><span class="Apple-converted-space">                </span>maxWin: 0,</p>
+<p class="p1"><span class="Apple-converted-space">                </span>maxLoss: 0,</p>
+<p class="p1"><span class="Apple-converted-space">                </span>currentStreak: 0,</p>
+<p class="p1"><span class="Apple-converted-space">                </span>streakType: '',</p>
+<p class="p1"><span class="Apple-converted-space">                </span>maxWinStreak: 0,</p>
+<p class="p1"><span class="Apple-converted-space">                </span>maxLoseStreak: 0,</p>
+<p class="p1"><span class="Apple-converted-space">                </span>twoWinStreak: 0</p>
+<p class="p1"><span class="Apple-converted-space">            </span>});</p>
+<p class="p1"><span class="Apple-converted-space">            </span>const [lastWinBetAmount, setLastWinBetAmount] = useState(0);</p>
+<p class="p1"><span class="Apple-converted-space">            </span>const [isWaitingForDouble, setIsWaitingForDouble] = useState(false);</p>
+<p class="p2"><br></p>
+<p class="p1"><span class="Apple-converted-space">            </span>const suits = ['♠', '♥', '♦', '♣'];</p>
+<p class="p1"><span class="Apple-converted-space">            </span>const ranks = ['A', '2', '3', '4', '5', '6', '7', '8', '9', '10', 'J', 'Q', 'K'];</p>
+<p class="p2"><br></p>
+<p class="p1"><span class="Apple-converted-space">            </span>const getCardValue = (rank) =&gt; {</p>
+<p class="p1"><span class="Apple-converted-space">                </span>if (rank === 'A') return 1;</p>
+<p class="p1"><span class="Apple-converted-space">                </span>if (['J', 'Q', 'K', '10'].includes(rank)) return 0;</p>
+<p class="p1"><span class="Apple-converted-space">                </span>return parseInt(rank);</p>
+<p class="p1"><span class="Apple-converted-space">            </span>};</p>
+<p class="p2"><br></p>
+<p class="p1"><span class="Apple-converted-space">            </span>const calculateScore = (cards) =&gt; {</p>
+<p class="p1"><span class="Apple-converted-space">                </span>const total = cards.reduce((sum, card) =&gt; sum + getCardValue(card.rank), 0);</p>
+<p class="p1"><span class="Apple-converted-space">                </span>return total % 10;</p>
+<p class="p1"><span class="Apple-converted-space">            </span>};</p>
+<p class="p2"><br></p>
+<p class="p1"><span class="Apple-converted-space">            </span>const drawCard = () =&gt; {</p>
+<p class="p1"><span class="Apple-converted-space">                </span>const suit = suits[Math.floor(Math.random() * suits.length)];</p>
+<p class="p1"><span class="Apple-converted-space">                </span>const rank = ranks[Math.floor(Math.random() * ranks.length)];</p>
+<p class="p1"><span class="Apple-converted-space">                </span>return { suit, rank };</p>
+<p class="p1"><span class="Apple-converted-space">            </span>};</p>
+<p class="p2"><br></p>
+<p class="p1"><span class="Apple-converted-space">            </span>const addBet = (type, amount) =&gt; {</p>
+<p class="p1"><span class="Apple-converted-space">                </span>if (gameState !== 'betting') return;</p>
+<p class="p1"><span class="Apple-converted-space">                </span>const totalBet = bet.player + bet.banker + bet.tie + amount;</p>
+<p class="p1"><span class="Apple-converted-space">                </span>if (totalBet &gt; balance) {</p>
+<p class="p1"><span class="Apple-converted-space">                    </span>setMessage('残高が不足しています');</p>
+<p class="p1"><span class="Apple-converted-space">                    </span>return;</p>
+<p class="p1"><span class="Apple-converted-space">                </span>}</p>
+<p class="p1"><span class="Apple-converted-space">                </span>setBet({ ...bet, [type]: bet[type] + amount });</p>
+<p class="p1"><span class="Apple-converted-space">                </span>setMessage(`${type === 'player' ? 'プレイヤー' : type === 'banker' ? 'バンカー' : 'タイ'}に${amount}円追加`);</p>
+<p class="p1"><span class="Apple-converted-space">            </span>};</p>
+<p class="p2"><br></p>
+<p class="p1"><span class="Apple-converted-space">            </span>const formatNumberWithCommas = (num) =&gt; {</p>
+<p class="p1"><span class="Apple-converted-space">                </span>if (!num) return '';</p>
+<p class="p1"><span class="Apple-converted-space">                </span>return num.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',');</p>
+<p class="p1"><span class="Apple-converted-space">            </span>};</p>
+<p class="p2"><br></p>
+<p class="p1"><span class="Apple-converted-space">            </span>const removeCommas = (str) =&gt; {</p>
+<p class="p1"><span class="Apple-converted-space">                </span>return str.replace(/,/g, '');</p>
+<p class="p1"><span class="Apple-converted-space">            </span>};</p>
+<p class="p2"><br></p>
+<p class="p1"><span class="Apple-converted-space">            </span>const setBetDirect = (type, value) =&gt; {</p>
+<p class="p1"><span class="Apple-converted-space">                </span>if (gameState !== 'betting') return;</p>
+<p class="p1"><span class="Apple-converted-space">                </span>const cleanValue = removeCommas(value);</p>
+<p class="p1"><span class="Apple-converted-space">                </span>const amount = parseInt(cleanValue) || 0;</p>
+<p class="p1"><span class="Apple-converted-space">                </span>if (amount &lt; 0) return;</p>
+<p class="p2"><span class="Apple-converted-space">                </span></p>
+<p class="p1"><span class="Apple-converted-space">                </span>const otherBets = Object.entries(bet)</p>
+<p class="p1"><span class="Apple-converted-space">                    </span>.filter(([key]) =&gt; key !== type)</p>
+<p class="p1"><span class="Apple-converted-space">                    </span>.reduce((sum, [, val]) =&gt; sum + val, 0);</p>
+<p class="p2"><span class="Apple-converted-space">                </span></p>
+<p class="p1"><span class="Apple-converted-space">                </span>if (otherBets + amount &gt; balance) {</p>
+<p class="p1"><span class="Apple-converted-space">                    </span>setMessage('残高が不足しています');</p>
+<p class="p1"><span class="Apple-converted-space">                    </span>return;</p>
+<p class="p1"><span class="Apple-converted-space">                </span>}</p>
+<p class="p2"><span class="Apple-converted-space">                </span></p>
+<p class="p1"><span class="Apple-converted-space">                </span>setBet({ ...bet, [type]: amount });</p>
+<p class="p1"><span class="Apple-converted-space">            </span>};</p>
+<p class="p2"><br></p>
+<p class="p1"><span class="Apple-converted-space">            </span>const clearBets = () =&gt; {</p>
+<p class="p1"><span class="Apple-converted-space">                </span>if (gameState !== 'betting') return;</p>
+<p class="p1"><span class="Apple-converted-space">                </span>setBet({ player: 0, banker: 0, tie: 0 });</p>
+<p class="p1"><span class="Apple-converted-space">                </span>setMessage('賭け金をクリアしました');</p>
+<p class="p1"><span class="Apple-converted-space">            </span>};</p>
+<p class="p2"><br></p>
+<p class="p1"><span class="Apple-converted-space">            </span>const dealCards = () =&gt; {</p>
+<p class="p1"><span class="Apple-converted-space">                </span>const totalBet = bet.player + bet.banker + bet.tie;</p>
+<p class="p1"><span class="Apple-converted-space">                </span>if (totalBet === 0) {</p>
+<p class="p1"><span class="Apple-converted-space">                    </span>setMessage('賭け金を設定してください');</p>
+<p class="p1"><span class="Apple-converted-space">                    </span>return;</p>
+<p class="p1"><span class="Apple-converted-space">                </span>}</p>
+<p class="p2"><br></p>
+<p class="p1"><span class="Apple-converted-space">                </span>setGameState('dealing');</p>
+<p class="p1"><span class="Apple-converted-space">                </span>setMessage('カードを配っています...');</p>
+<p class="p2"><br></p>
+<p class="p1"><span class="Apple-converted-space">                </span>setTimeout(() =&gt; {</p>
+<p class="p1"><span class="Apple-converted-space">                    </span>const pCards = [drawCard(), drawCard()];</p>
+<p class="p1"><span class="Apple-converted-space">                    </span>const bCards = [drawCard(), drawCard()];</p>
+<p class="p1"><span class="Apple-converted-space">                    </span>setPlayerCards(pCards);</p>
+<p class="p1"><span class="Apple-converted-space">                    </span>setBankerCards(bCards);</p>
+<p class="p2"><br></p>
+<p class="p1"><span class="Apple-converted-space">                    </span>const pScore = calculateScore(pCards);</p>
+<p class="p1"><span class="Apple-converted-space">                    </span>const bScore = calculateScore(bCards);</p>
+<p class="p2"><br></p>
+<p class="p1"><span class="Apple-converted-space">                    </span>if (pScore &gt;= 8 || bScore &gt;= 8) {</p>
+<p class="p1"><span class="Apple-converted-space">                        </span>determineWinner(pCards, bCards);</p>
+<p class="p1"><span class="Apple-converted-space">                        </span>return;</p>
+<p class="p1"><span class="Apple-converted-space">                    </span>}</p>
+<p class="p2"><br></p>
+<p class="p1"><span class="Apple-converted-space">                    </span>let newPCards = [...pCards];</p>
+<p class="p1"><span class="Apple-converted-space">                    </span>let newBCards = [...bCards];</p>
+<p class="p2"><br></p>
+<p class="p1"><span class="Apple-converted-space">                    </span>if (pScore &lt;= 5) {</p>
+<p class="p1"><span class="Apple-converted-space">                        </span>setTimeout(() =&gt; {</p>
+<p class="p1"><span class="Apple-converted-space">                            </span>const thirdCard = drawCard();</p>
+<p class="p1"><span class="Apple-converted-space">                            </span>newPCards = [...pCards, thirdCard];</p>
+<p class="p1"><span class="Apple-converted-space">                            </span>setPlayerCards(newPCards);</p>
+<p class="p2"><br></p>
+<p class="p1"><span class="Apple-converted-space">                            </span>const playerThirdValue = getCardValue(thirdCard.rank);</p>
+<p class="p1"><span class="Apple-converted-space">                            </span>const shouldBankerDraw =<span class="Apple-converted-space"> </span></p>
+<p class="p1"><span class="Apple-converted-space">                                </span>(bScore &lt;= 2) ||</p>
+<p class="p1"><span class="Apple-converted-space">                                </span>(bScore === 3 &amp;&amp; playerThirdValue !== 8) ||</p>
+<p class="p1"><span class="Apple-converted-space">                                </span>(bScore === 4 &amp;&amp; [2, 3, 4, 5, 6, 7].includes(playerThirdValue)) ||</p>
+<p class="p1"><span class="Apple-converted-space">                                </span>(bScore === 5 &amp;&amp; [4, 5, 6, 7].includes(playerThirdValue)) ||</p>
+<p class="p1"><span class="Apple-converted-space">                                </span>(bScore === 6 &amp;&amp; [6, 7].includes(playerThirdValue));</p>
+<p class="p2"><br></p>
+<p class="p1"><span class="Apple-converted-space">                            </span>if (shouldBankerDraw) {</p>
+<p class="p1"><span class="Apple-converted-space">                                </span>setTimeout(() =&gt; {</p>
+<p class="p1"><span class="Apple-converted-space">                                    </span>newBCards = [...bCards, drawCard()];</p>
+<p class="p1"><span class="Apple-converted-space">                                    </span>setBankerCards(newBCards);</p>
+<p class="p1"><span class="Apple-converted-space">                                    </span>setTimeout(() =&gt; determineWinner(newPCards, newBCards), 500);</p>
+<p class="p1"><span class="Apple-converted-space">                                </span>}, 500);</p>
+<p class="p1"><span class="Apple-converted-space">                            </span>} else {</p>
+<p class="p1"><span class="Apple-converted-space">                                </span>setTimeout(() =&gt; determineWinner(newPCards, newBCards), 500);</p>
+<p class="p1"><span class="Apple-converted-space">                            </span>}</p>
+<p class="p1"><span class="Apple-converted-space">                        </span>}, 1000);</p>
+<p class="p1"><span class="Apple-converted-space">                    </span>} else if (bScore &lt;= 5) {</p>
+<p class="p1"><span class="Apple-converted-space">                        </span>setTimeout(() =&gt; {</p>
+<p class="p1"><span class="Apple-converted-space">                            </span>newBCards = [...bCards, drawCard()];</p>
+<p class="p1"><span class="Apple-converted-space">                            </span>setBankerCards(newBCards);</p>
+<p class="p1"><span class="Apple-converted-space">                            </span>setTimeout(() =&gt; determineWinner(newPCards, newBCards), 500);</p>
+<p class="p1"><span class="Apple-converted-space">                        </span>}, 1000);</p>
+<p class="p1"><span class="Apple-converted-space">                    </span>} else {</p>
+<p class="p1"><span class="Apple-converted-space">                        </span>setTimeout(() =&gt; determineWinner(newPCards, newBCards), 1000);</p>
+<p class="p1"><span class="Apple-converted-space">                    </span>}</p>
+<p class="p1"><span class="Apple-converted-space">                </span>}, 500);</p>
+<p class="p1"><span class="Apple-converted-space">            </span>};</p>
+<p class="p2"><br></p>
+<p class="p1"><span class="Apple-converted-space">            </span>const determineWinner = (pCards, bCards) =&gt; {</p>
+<p class="p1"><span class="Apple-converted-space">                </span>const pScore = calculateScore(pCards);</p>
+<p class="p1"><span class="Apple-converted-space">                </span>const bScore = calculateScore(bCards);</p>
+<p class="p2"><span class="Apple-converted-space">                </span></p>
+<p class="p1"><span class="Apple-converted-space">                </span>let winAmount = 0;</p>
+<p class="p1"><span class="Apple-converted-space">                </span>let resultText = '';</p>
+<p class="p1"><span class="Apple-converted-space">                </span>let winner = '';</p>
+<p class="p2"><br></p>
+<p class="p1"><span class="Apple-converted-space">                </span>if (pScore &gt; bScore) {</p>
+<p class="p1"><span class="Apple-converted-space">                    </span>resultText = 'プレイヤーの勝ち!';</p>
+<p class="p1"><span class="Apple-converted-space">                    </span>winAmount = bet.player * 2;</p>
+<p class="p1"><span class="Apple-converted-space">                    </span>winner = 'player';</p>
+<p class="p1"><span class="Apple-converted-space">                </span>} else if (bScore &gt; pScore) {</p>
+<p class="p1"><span class="Apple-converted-space">                    </span>resultText = 'バンカーの勝ち!';</p>
+<p class="p1"><span class="Apple-converted-space">                    </span>winAmount = Math.floor(bet.banker * 1.95);</p>
+<p class="p1"><span class="Apple-converted-space">                    </span>winner = 'banker';</p>
+<p class="p1"><span class="Apple-converted-space">                </span>} else {</p>
+<p class="p1"><span class="Apple-converted-space">                    </span>resultText = 'タイ!';</p>
+<p class="p1"><span class="Apple-converted-space">                    </span>winAmount = bet.tie * 9 + bet.player + bet.banker;</p>
+<p class="p1"><span class="Apple-converted-space">                    </span>winner = 'tie';</p>
+<p class="p1"><span class="Apple-converted-space">                </span>}</p>
+<p class="p2"><br></p>
+<p class="p1"><span class="Apple-converted-space">                </span>const totalBet = bet.player + bet.banker + bet.tie;</p>
+<p class="p1"><span class="Apple-converted-space">                </span>const profit = winAmount - totalBet;</p>
+<p class="p2"><br></p>
+<p class="p1"><span class="Apple-converted-space">                </span>setResult(resultText);</p>
+<p class="p1"><span class="Apple-converted-space">                </span>setBalance(balance - totalBet + winAmount);</p>
+<p class="p1"><span class="Apple-converted-space">                </span>setMessage(`${resultText} ${profit &gt;= 0 ? '+' : ''}${profit}円`);</p>
+<p class="p1"><span class="Apple-converted-space">                </span>setGameState('result');</p>
+<p class="p2"><br></p>
+<p class="p1"><span class="Apple-converted-space">                </span>setHistory([{ result: resultText, profit, pScore, bScore }, ...history.slice(0, 9)]);</p>
+<p class="p2"><br></p>
+<p class="p1"><span class="Apple-converted-space">                </span>// Update statistics</p>
+<p class="p1"><span class="Apple-converted-space">                </span>setStats(prevStats =&gt; {</p>
+<p class="p1"><span class="Apple-converted-space">                    </span>const newStats = { ...prevStats };</p>
+<p class="p1"><span class="Apple-converted-space">                    </span>newStats.totalGames += 1;</p>
+<p class="p1"><span class="Apple-converted-space">                    </span>newStats.totalBet += totalBet;</p>
+<p class="p1"><span class="Apple-converted-space">                    </span>newStats.totalProfit += profit;</p>
+<p class="p2"><span class="Apple-converted-space">                    </span></p>
+<p class="p1"><span class="Apple-converted-space">                    </span>if (winner === 'player') newStats.playerWins += 1;</p>
+<p class="p1"><span class="Apple-converted-space">                    </span>else if (winner === 'banker') newStats.bankerWins += 1;</p>
+<p class="p1"><span class="Apple-converted-space">                    </span>else if (winner === 'tie') newStats.ties += 1;</p>
+<p class="p2"><br></p>
+<p class="p1"><span class="Apple-converted-space">                    </span>if (profit &gt; newStats.maxWin) newStats.maxWin = profit;</p>
+<p class="p1"><span class="Apple-converted-space">                    </span>if (profit &lt; newStats.maxLoss) newStats.maxLoss = profit;</p>
+<p class="p2"><br></p>
+<p class="p1"><span class="Apple-converted-space">                    </span>// Track streaks</p>
+<p class="p1"><span class="Apple-converted-space">                    </span>if (profit &gt; 0) {</p>
+<p class="p1"><span class="Apple-converted-space">                        </span>if (prevStats.currentStreak &gt; 0) {</p>
+<p class="p1"><span class="Apple-converted-space">                            </span>newStats.currentStreak = prevStats.currentStreak + 1;</p>
+<p class="p1"><span class="Apple-converted-space">                        </span>} else {</p>
+<p class="p1"><span class="Apple-converted-space">                            </span>newStats.currentStreak = 1;</p>
+<p class="p1"><span class="Apple-converted-space">                        </span>}</p>
+<p class="p1"><span class="Apple-converted-space">                        </span>if (newStats.currentStreak &gt; newStats.maxWinStreak) {</p>
+<p class="p1"><span class="Apple-converted-space">                            </span>newStats.maxWinStreak = newStats.currentStreak;</p>
+<p class="p1"><span class="Apple-converted-space">                        </span>}</p>
+<p class="p1"><span class="Apple-converted-space">                        </span>// 倍掛け2連勝を検出: 前回勝利待機中 + 今回のベット額が前回勝利時の2倍 + 今回も勝利</p>
+<p class="p1"><span class="Apple-converted-space">                        </span>if (isWaitingForDouble &amp;&amp; lastWinBetAmount &gt; 0 &amp;&amp; totalBet === lastWinBetAmount * 2) {</p>
+<p class="p1"><span class="Apple-converted-space">                            </span>newStats.twoWinStreak += 1;</p>
+<p class="p1"><span class="Apple-converted-space">                        </span>}</p>
+<p class="p1"><span class="Apple-converted-space">                    </span>} else {</p>
+<p class="p1"><span class="Apple-converted-space">                        </span>if (prevStats.currentStreak &lt; 0) {</p>
+<p class="p1"><span class="Apple-converted-space">                            </span>newStats.currentStreak = prevStats.currentStreak - 1;</p>
+<p class="p1"><span class="Apple-converted-space">                        </span>} else {</p>
+<p class="p1"><span class="Apple-converted-space">                            </span>newStats.currentStreak = -1;</p>
+<p class="p1"><span class="Apple-converted-space">                        </span>}</p>
+<p class="p1"><span class="Apple-converted-space">                        </span>if (Math.abs(newStats.currentStreak) &gt; newStats.maxLoseStreak) {</p>
+<p class="p1"><span class="Apple-converted-space">                            </span>newStats.maxLoseStreak = Math.abs(newStats.currentStreak);</p>
+<p class="p1"><span class="Apple-converted-space">                        </span>}</p>
+<p class="p1"><span class="Apple-converted-space">                    </span>}</p>
+<p class="p2"><br></p>
+<p class="p1"><span class="Apple-converted-space">                    </span>return newStats;</p>
+<p class="p1"><span class="Apple-converted-space">                </span>});</p>
+<p class="p2"><br></p>
+<p class="p1"><span class="Apple-converted-space">                </span>// 勝敗に応じて状態を更新</p>
+<p class="p1"><span class="Apple-converted-space">                </span>if (winner !== 'tie') {</p>
+<p class="p1"><span class="Apple-converted-space">                    </span>if (profit &gt; 0) {</p>
+<p class="p1"><span class="Apple-converted-space">                        </span>// 勝利: 最後の勝利ベット額を更新し、倍掛け待機状態に</p>
+<p class="p1"><span class="Apple-converted-space">                        </span>setLastWinBetAmount(totalBet);</p>
+<p class="p1"><span class="Apple-converted-space">                        </span>setIsWaitingForDouble(true);</p>
+<p class="p1"><span class="Apple-converted-space">                    </span>} else {</p>
+<p class="p1"><span class="Apple-converted-space">                        </span>// 負け: 倍掛け待機状態をリセット</p>
+<p class="p1"><span class="Apple-converted-space">                        </span>setLastWinBetAmount(0);</p>
+<p class="p1"><span class="Apple-converted-space">                        </span>setIsWaitingForDouble(false);</p>
+<p class="p1"><span class="Apple-converted-space">                    </span>}</p>
+<p class="p1"><span class="Apple-converted-space">                </span>}</p>
+<p class="p1"><span class="Apple-converted-space">                </span>// タイの場合は何も更新しない（状態を維持）</p>
+<p class="p1"><span class="Apple-converted-space">            </span>};</p>
+<p class="p2"><br></p>
+<p class="p1"><span class="Apple-converted-space">            </span>const newGame = () =&gt; {</p>
+<p class="p1"><span class="Apple-converted-space">                </span>setGameState('betting');</p>
+<p class="p1"><span class="Apple-converted-space">                </span>setBet({ player: 0, banker: 0, tie: 0 });</p>
+<p class="p1"><span class="Apple-converted-space">                </span>setPlayerCards([]);</p>
+<p class="p1"><span class="Apple-converted-space">                </span>setBankerCards([]);</p>
+<p class="p1"><span class="Apple-converted-space">                </span>setResult('');</p>
+<p class="p1"><span class="Apple-converted-space">                </span>setMessage('賭け金を選択してください');</p>
+<p class="p1"><span class="Apple-converted-space">            </span>};</p>
+<p class="p2"><br></p>
+<p class="p1"><span class="Apple-converted-space">            </span>const addBalance = (amount) =&gt; {</p>
+<p class="p1"><span class="Apple-converted-space">                </span>setBalance(balance + amount);</p>
+<p class="p1"><span class="Apple-converted-space">                </span>setMessage(`残高に${amount.toLocaleString()}円追加しました`);</p>
+<p class="p1"><span class="Apple-converted-space">            </span>};</p>
+<p class="p2"><br></p>
+<p class="p1"><span class="Apple-converted-space">            </span>const setBalanceCustom = () =&gt; {</p>
+<p class="p1"><span class="Apple-converted-space">                </span>const amount = parseInt(balanceInput);</p>
+<p class="p1"><span class="Apple-converted-space">                </span>if (amount &amp;&amp; amount &gt;= 0) {</p>
+<p class="p1"><span class="Apple-converted-space">                    </span>setBalance(amount);</p>
+<p class="p1"><span class="Apple-converted-space">                    </span>setMessage(`残高を${amount.toLocaleString()}円に設定しました`);</p>
+<p class="p1"><span class="Apple-converted-space">                    </span>setShowBalanceModal(false);</p>
+<p class="p1"><span class="Apple-converted-space">                    </span>setBalanceInput('');</p>
+<p class="p1"><span class="Apple-converted-space">                </span>}</p>
+<p class="p1"><span class="Apple-converted-space">            </span>};</p>
+<p class="p2"><br></p>
+<p class="p1"><span class="Apple-converted-space">            </span>const resetStats = () =&gt; {</p>
+<p class="p1"><span class="Apple-converted-space">                </span>if (window.confirm('統計データをリセットしますか？')) {</p>
+<p class="p1"><span class="Apple-converted-space">                    </span>setStats({</p>
+<p class="p1"><span class="Apple-converted-space">                        </span>totalGames: 0,</p>
+<p class="p1"><span class="Apple-converted-space">                        </span>playerWins: 0,</p>
+<p class="p1"><span class="Apple-converted-space">                        </span>bankerWins: 0,</p>
+<p class="p1"><span class="Apple-converted-space">                        </span>ties: 0,</p>
+<p class="p1"><span class="Apple-converted-space">                        </span>totalProfit: 0,</p>
+<p class="p1"><span class="Apple-converted-space">                        </span>totalBet: 0,</p>
+<p class="p1"><span class="Apple-converted-space">                        </span>maxWin: 0,</p>
+<p class="p1"><span class="Apple-converted-space">                        </span>maxLoss: 0,</p>
+<p class="p1"><span class="Apple-converted-space">                        </span>currentStreak: 0,</p>
+<p class="p1"><span class="Apple-converted-space">                        </span>streakType: '',</p>
+<p class="p1"><span class="Apple-converted-space">                        </span>maxWinStreak: 0,</p>
+<p class="p1"><span class="Apple-converted-space">                        </span>maxLoseStreak: 0,</p>
+<p class="p1"><span class="Apple-converted-space">                        </span>twoWinStreak: 0</p>
+<p class="p1"><span class="Apple-converted-space">                    </span>});</p>
+<p class="p1"><span class="Apple-converted-space">                    </span>setLastWinBetAmount(0);</p>
+<p class="p1"><span class="Apple-converted-space">                    </span>setIsWaitingForDouble(false);</p>
+<p class="p1"><span class="Apple-converted-space">                    </span>setMessage('統計データをリセットしました');</p>
+<p class="p1"><span class="Apple-converted-space">                </span>}</p>
+<p class="p1"><span class="Apple-converted-space">            </span>};</p>
+<p class="p2"><br></p>
+<p class="p1"><span class="Apple-converted-space">            </span>const Card = ({ card, hidden }) =&gt; (</p>
+<p class="p1"><span class="Apple-converted-space">                </span>&lt;div className={`w-16 h-24 rounded-lg flex items-center justify-center text-2xl font-bold shadow-lg ${</p>
+<p class="p1"><span class="Apple-converted-space">                    </span>hidden ? 'bg-blue-600' : 'bg-white'</p>
+<p class="p1"><span class="Apple-converted-space">                </span>} ${card &amp;&amp; ['♥', '♦'].includes(card.suit) ? 'text-red-600' : 'text-gray-800'}`}&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                    </span>{hidden ? '🂠' : (</p>
+<p class="p1"><span class="Apple-converted-space">                        </span>&lt;div className="text-center"&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                            </span>&lt;div className="text-sm"&gt;{card.suit}&lt;/div&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                            </span>&lt;div&gt;{card.rank}&lt;/div&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                        </span>&lt;/div&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                    </span>)}</p>
+<p class="p1"><span class="Apple-converted-space">                </span>&lt;/div&gt;</p>
+<p class="p1"><span class="Apple-converted-space">            </span>);</p>
+<p class="p2"><br></p>
+<p class="p1"><span class="Apple-converted-space">            </span>return (</p>
+<p class="p1"><span class="Apple-converted-space">                </span>&lt;div className="min-h-screen bg-gradient-to-b from-green-800 to-green-900 text-white p-4 pb-20"&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                    </span>{/* Header */}</p>
+<p class="p1"><span class="Apple-converted-space">                    </span>&lt;div className="text-center mb-6"&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                        </span>&lt;h1 className="text-3xl font-bold mb-2"&gt;🎰 バカラ&lt;/h1&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                        </span>&lt;div className="flex items-center justify-center gap-3 mb-3"&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                            </span>&lt;div className="text-2xl font-bold text-yellow-300"&gt;¥{balance.toLocaleString()}&lt;/div&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                            </span>&lt;button</p>
+<p class="p1"><span class="Apple-converted-space">                                </span>onClick={() =&gt; setShowBalanceModal(true)}</p>
+<p class="p1"><span class="Apple-converted-space">                                </span>className="bg-yellow-600 hover:bg-yellow-700 active:bg-yellow-800 text-white px-4 py-2 rounded-lg font-bold text-sm"</p>
+<p class="p1"><span class="Apple-converted-space">                            </span>&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                                </span>残高管理</p>
+<p class="p1"><span class="Apple-converted-space">                            </span>&lt;/button&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                            </span>&lt;button</p>
+<p class="p1"><span class="Apple-converted-space">                                </span>onClick={() =&gt; setShowStatsModal(true)}</p>
+<p class="p1"><span class="Apple-converted-space">                                </span>className="bg-purple-600 hover:bg-purple-700 active:bg-purple-800 text-white px-4 py-2 rounded-lg font-bold text-sm"</p>
+<p class="p1"><span class="Apple-converted-space">                            </span>&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                                </span>📊 統計</p>
+<p class="p1"><span class="Apple-converted-space">                            </span>&lt;/button&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                        </span>&lt;/div&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                        </span>{stats.totalGames &gt; 0 &amp;&amp; (</p>
+<p class="p1"><span class="Apple-converted-space">                            </span>&lt;div className="text-sm text-gray-300"&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                                </span>総ゲーム数: {stats.totalGames} |<span class="Apple-converted-space"> </span></p>
+<p class="p1"><span class="Apple-converted-space">                                </span>収支: &lt;span className={stats.totalProfit &gt;= 0 ? 'text-green-400' : 'text-red-400'}&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                                    </span>{stats.totalProfit &gt;= 0 ? '+' : ''}{stats.totalProfit.toLocaleString()}円</p>
+<p class="p1"><span class="Apple-converted-space">                                </span>&lt;/span&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                            </span>&lt;/div&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                        </span>)}</p>
+<p class="p1"><span class="Apple-converted-space">                    </span>&lt;/div&gt;</p>
+<p class="p2"><br></p>
+<p class="p1"><span class="Apple-converted-space">                    </span>{/* Balance Modal */}</p>
+<p class="p1"><span class="Apple-converted-space">                    </span>{showBalanceModal &amp;&amp; (</p>
+<p class="p1"><span class="Apple-converted-space">                        </span>&lt;div className="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50 p-4"&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                            </span>&lt;div className="bg-gray-800 rounded-2xl p-6 max-w-md w-full modal-content"&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                                </span>&lt;h2 className="text-2xl font-bold mb-4 text-center"&gt;💰 残高管理&lt;/h2&gt;</p>
+<p class="p2"><span class="Apple-converted-space">                                </span></p>
+<p class="p1"><span class="Apple-converted-space">                                </span>&lt;div className="mb-6"&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                                    </span>&lt;div className="text-center mb-4"&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                                        </span>&lt;div className="text-sm text-gray-400 mb-1"&gt;現在の残高&lt;/div&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                                        </span>&lt;div className="text-3xl font-bold text-yellow-300"&gt;¥{balance.toLocaleString()}&lt;/div&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                                    </span>&lt;/div&gt;</p>
+<p class="p2"><span class="Apple-converted-space">                                    </span></p>
+<p class="p1"><span class="Apple-converted-space">                                    </span>&lt;div className="text-sm text-gray-400 mb-2"&gt;クイック追加&lt;/div&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                                    </span>&lt;div className="grid grid-cols-3 gap-2 mb-4"&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                                        </span>{[1000, 5000, 10000, 50000, 100000, 500000].map(amount =&gt; (</p>
+<p class="p1"><span class="Apple-converted-space">                                            </span>&lt;button</p>
+<p class="p1"><span class="Apple-converted-space">                                                </span>key={amount}</p>
+<p class="p1"><span class="Apple-converted-space">                                                </span>onClick={() =&gt; {</p>
+<p class="p1"><span class="Apple-converted-space">                                                    </span>addBalance(amount);</p>
+<p class="p1"><span class="Apple-converted-space">                                                    </span>setShowBalanceModal(false);</p>
+<p class="p1"><span class="Apple-converted-space">                                                </span>}}</p>
+<p class="p1"><span class="Apple-converted-space">                                                </span>className="bg-green-600 hover:bg-green-700 py-3 rounded-lg font-bold active:bg-green-800"</p>
+<p class="p1"><span class="Apple-converted-space">                                            </span>&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                                                </span>+{amount &gt;= 10000 ? `${amount/10000}万` : amount &gt;= 1000 ? `${amount/1000}k` : amount}</p>
+<p class="p1"><span class="Apple-converted-space">                                            </span>&lt;/button&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                                        </span>))}</p>
+<p class="p1"><span class="Apple-converted-space">                                    </span>&lt;/div&gt;</p>
+<p class="p2"><br></p>
+<p class="p1"><span class="Apple-converted-space">                                    </span>&lt;div className="text-sm text-gray-400 mb-2"&gt;残高を設定&lt;/div&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                                    </span>&lt;div className="flex gap-2 mb-4"&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                                        </span>&lt;input</p>
+<p class="p1"><span class="Apple-converted-space">                                            </span>type="number"</p>
+<p class="p1"><span class="Apple-converted-space">                                            </span>inputMode="numeric"</p>
+<p class="p1"><span class="Apple-converted-space">                                            </span>pattern="[0-9]*"</p>
+<p class="p1"><span class="Apple-converted-space">                                            </span>value={balanceInput}</p>
+<p class="p1"><span class="Apple-converted-space">                                            </span>onChange={(e) =&gt; setBalanceInput(e.target.value)}</p>
+<p class="p1"><span class="Apple-converted-space">                                            </span>placeholder="金額を入力"</p>
+<p class="p1"><span class="Apple-converted-space">                                            </span>className="flex-1 bg-gray-700 text-white px-4 py-3 rounded-lg text-center font-bold text-lg focus:outline-none focus:ring-2 focus:ring-yellow-500"</p>
+<p class="p1"><span class="Apple-converted-space">                                        </span>/&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                                        </span>&lt;button</p>
+<p class="p1"><span class="Apple-converted-space">                                            </span>onClick={setBalanceCustom}</p>
+<p class="p1"><span class="Apple-converted-space">                                            </span>className="bg-blue-600 hover:bg-blue-700 px-6 py-3 rounded-lg font-bold active:bg-blue-800"</p>
+<p class="p1"><span class="Apple-converted-space">                                        </span>&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                                            </span>設定</p>
+<p class="p1"><span class="Apple-converted-space">                                        </span>&lt;/button&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                                    </span>&lt;/div&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                                </span>&lt;/div&gt;</p>
+<p class="p2"><br></p>
+<p class="p1"><span class="Apple-converted-space">                                </span>&lt;button</p>
+<p class="p1"><span class="Apple-converted-space">                                    </span>onClick={() =&gt; {</p>
+<p class="p1"><span class="Apple-converted-space">                                        </span>setShowBalanceModal(false);</p>
+<p class="p1"><span class="Apple-converted-space">                                        </span>setBalanceInput('');</p>
+<p class="p1"><span class="Apple-converted-space">                                    </span>}}</p>
+<p class="p1"><span class="Apple-converted-space">                                    </span>className="w-full bg-gray-600 hover:bg-gray-700 py-3 rounded-lg font-bold active:bg-gray-800"</p>
+<p class="p1"><span class="Apple-converted-space">                                </span>&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                                    </span>閉じる</p>
+<p class="p1"><span class="Apple-converted-space">                                </span>&lt;/button&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                            </span>&lt;/div&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                        </span>&lt;/div&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                    </span>)}</p>
+<p class="p2"><br></p>
+<p class="p1"><span class="Apple-converted-space">                    </span>{/* Statistics Modal */}</p>
+<p class="p1"><span class="Apple-converted-space">                    </span>{showStatsModal &amp;&amp; (</p>
+<p class="p1"><span class="Apple-converted-space">                        </span>&lt;div className="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50 p-4"&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                            </span>&lt;div className="bg-gray-800 rounded-2xl p-6 max-w-md w-full my-8 modal-content"&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                                </span>&lt;h2 className="text-2xl font-bold mb-6 text-center"&gt;📊 勝敗分析&lt;/h2&gt;</p>
+<p class="p2"><span class="Apple-converted-space">                                </span></p>
+<p class="p1"><span class="Apple-converted-space">                                </span>{stats.totalGames === 0 ? (</p>
+<p class="p1"><span class="Apple-converted-space">                                    </span>&lt;div className="text-center text-gray-400 py-8"&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                                        </span>まだゲームをプレイしていません</p>
+<p class="p1"><span class="Apple-converted-space">                                    </span>&lt;/div&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                                </span>) : (</p>
+<p class="p1"><span class="Apple-converted-space">                                    </span>&lt;div className="space-y-6"&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                                        </span>{/* Overall Stats */}</p>
+<p class="p1"><span class="Apple-converted-space">                                        </span>&lt;div className="bg-gray-700 rounded-xl p-4"&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                                            </span>&lt;h3 className="text-lg font-bold mb-3 text-yellow-300"&gt;全体統計&lt;/h3&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                                            </span>&lt;div className="space-y-2 text-sm"&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                                                </span>&lt;div className="flex justify-between"&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                                                    </span>&lt;span&gt;総ゲーム数:&lt;/span&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                                                    </span>&lt;span className="font-bold"&gt;{stats.totalGames}回&lt;/span&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                                                </span>&lt;/div&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                                                </span>&lt;div className="flex justify-between"&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                                                    </span>&lt;span&gt;総ベット額:&lt;/span&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                                                    </span>&lt;span className="font-bold"&gt;¥{stats.totalBet.toLocaleString()}&lt;/span&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                                                </span>&lt;/div&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                                                </span>&lt;div className="flex justify-between"&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                                                    </span>&lt;span&gt;総収支:&lt;/span&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                                                    </span>&lt;span className={`font-bold ${stats.totalProfit &gt;= 0 ? 'text-green-400' : 'text-red-400'}`}&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                                                        </span>{stats.totalProfit &gt;= 0 ? '+' : ''}¥{stats.totalProfit.toLocaleString()}</p>
+<p class="p1"><span class="Apple-converted-space">                                                    </span>&lt;/span&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                                                </span>&lt;/div&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                                                </span>&lt;div className="flex justify-between"&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                                                    </span>&lt;span&gt;平均ベット:&lt;/span&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                                                    </span>&lt;span className="font-bold"&gt;¥{Math.round(stats.totalBet / stats.totalGames).toLocaleString()}&lt;/span&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                                                </span>&lt;/div&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                                                </span>&lt;div className="flex justify-between"&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                                                    </span>&lt;span&gt;投資効率:&lt;/span&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                                                    </span>&lt;span className={`font-bold ${stats.totalProfit &gt;= 0 ? 'text-green-400' : 'text-red-400'}`}&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                                                        </span>{((stats.totalProfit / stats.totalBet) * 100).toFixed(1)}%</p>
+<p class="p1"><span class="Apple-converted-space">                                                    </span>&lt;/span&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                                                </span>&lt;/div&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                                            </span>&lt;/div&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                                        </span>&lt;/div&gt;</p>
+<p class="p2"><br></p>
+<p class="p1"><span class="Apple-converted-space">                                        </span>{/* Win/Loss Distribution */}</p>
+<p class="p1"><span class="Apple-converted-space">                                        </span>&lt;div className="bg-gray-700 rounded-xl p-4"&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                                            </span>&lt;h3 className="text-lg font-bold mb-3 text-yellow-300"&gt;勝敗分布&lt;/h3&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                                            </span>&lt;div className="space-y-3"&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                                                </span>&lt;div&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                                                    </span>&lt;div className="flex justify-between text-sm mb-1"&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                                                        </span>&lt;span&gt;🔵 プレイヤー勝利&lt;/span&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                                                        </span>&lt;span className="font-bold"&gt;{stats.playerWins}回 ({((stats.playerWins / stats.totalGames) * 100).toFixed(1)}%)&lt;/span&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                                                    </span>&lt;/div&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                                                    </span>&lt;div className="w-full bg-gray-600 rounded-full h-2"&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                                                        </span>&lt;div className="bg-blue-500 h-2 rounded-full" style={{width: `${(stats.playerWins / stats.totalGames) * 100}%`}}&gt;&lt;/div&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                                                    </span>&lt;/div&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                                                </span>&lt;/div&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                                                </span>&lt;div&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                                                    </span>&lt;div className="flex justify-between text-sm mb-1"&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                                                        </span>&lt;span&gt;🔴 バンカー勝利&lt;/span&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                                                        </span>&lt;span className="font-bold"&gt;{stats.bankerWins}回 ({((stats.bankerWins / stats.totalGames) * 100).toFixed(1)}%)&lt;/span&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                                                    </span>&lt;/div&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                                                    </span>&lt;div className="w-full bg-gray-600 rounded-full h-2"&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                                                        </span>&lt;div className="bg-red-500 h-2 rounded-full" style={{width: `${(stats.bankerWins / stats.totalGames) * 100}%`}}&gt;&lt;/div&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                                                    </span>&lt;/div&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                                                </span>&lt;/div&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                                                </span>&lt;div&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                                                    </span>&lt;div className="flex justify-between text-sm mb-1"&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                                                        </span>&lt;span&gt;🟡 タイ&lt;/span&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                                                        </span>&lt;span className="font-bold"&gt;{stats.ties}回 ({((stats.ties / stats.totalGames) * 100).toFixed(1)}%)&lt;/span&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                                                    </span>&lt;/div&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                                                    </span>&lt;div className="w-full bg-gray-600 rounded-full h-2"&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                                                        </span>&lt;div className="bg-yellow-500 h-2 rounded-full" style={{width: `${(stats.ties / stats.totalGames) * 100}%`}}&gt;&lt;/div&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                                                    </span>&lt;/div&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                                                </span>&lt;/div&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                                            </span>&lt;/div&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                                        </span>&lt;/div&gt;</p>
+<p class="p2"><br></p>
+<p class="p1"><span class="Apple-converted-space">                                        </span>{/* Records */}</p>
+<p class="p1"><span class="Apple-converted-space">                                        </span>&lt;div className="bg-gray-700 rounded-xl p-4"&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                                            </span>&lt;h3 className="text-lg font-bold mb-3 text-yellow-300"&gt;記録&lt;/h3&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                                            </span>&lt;div className="space-y-2 text-sm"&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                                                </span>&lt;div className="flex justify-between"&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                                                    </span>&lt;span&gt;最大勝利:&lt;/span&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                                                    </span>&lt;span className="font-bold text-green-400"&gt;+¥{stats.maxWin.toLocaleString()}&lt;/span&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                                                </span>&lt;/div&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                                                </span>&lt;div className="flex justify-between"&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                                                    </span>&lt;span&gt;最大損失:&lt;/span&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                                                    </span>&lt;span className="font-bold text-red-400"&gt;¥{stats.maxLoss.toLocaleString()}&lt;/span&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                                                </span>&lt;/div&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                                                </span>&lt;div className="flex justify-between"&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                                                    </span>&lt;span&gt;最大連勝:&lt;/span&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                                                    </span>&lt;span className="font-bold text-green-400"&gt;{stats.maxWinStreak}回&lt;/span&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                                                </span>&lt;/div&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                                                </span>&lt;div className="flex justify-between"&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                                                    </span>&lt;span&gt;最大連敗:&lt;/span&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                                                    </span>&lt;span className="font-bold text-red-400"&gt;{stats.maxLoseStreak}回&lt;/span&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                                                </span>&lt;/div&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                                                </span>&lt;div className="flex justify-between"&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                                                    </span>&lt;span&gt;倍掛け2連勝:&lt;/span&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                                                    </span>&lt;span className="font-bold text-green-400"&gt;{stats.twoWinStreak}回&lt;/span&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                                                </span>&lt;/div&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                                                </span>&lt;div className="flex justify-between"&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                                                    </span>&lt;span&gt;現在の連勝/連敗:&lt;/span&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                                                    </span>&lt;span className={`font-bold ${stats.currentStreak &gt; 0 ? 'text-green-400' : stats.currentStreak &lt; 0 ? 'text-red-400' : ''}`}&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                                                        </span>{stats.currentStreak &gt; 0 ? `${stats.currentStreak}連勝` : stats.currentStreak &lt; 0 ? `${Math.abs(stats.currentStreak)}連敗` : '0'}</p>
+<p class="p1"><span class="Apple-converted-space">                                                    </span>&lt;/span&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                                                </span>&lt;/div&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                                            </span>&lt;/div&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                                        </span>&lt;/div&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                                    </span>&lt;/div&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                                </span>)}</p>
+<p class="p2"><br></p>
+<p class="p1"><span class="Apple-converted-space">                                </span>&lt;div className="grid grid-cols-2 gap-3 mt-6"&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                                    </span>&lt;button</p>
+<p class="p1"><span class="Apple-converted-space">                                        </span>onClick={resetStats}</p>
+<p class="p1"><span class="Apple-converted-space">                                        </span>className="bg-red-600 hover:bg-red-700 active:bg-red-800 py-3 rounded-lg font-bold"</p>
+<p class="p1"><span class="Apple-converted-space">                                    </span>&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                                        </span>リセット</p>
+<p class="p1"><span class="Apple-converted-space">                                    </span>&lt;/button&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                                    </span>&lt;button</p>
+<p class="p1"><span class="Apple-converted-space">                                        </span>onClick={() =&gt; setShowStatsModal(false)}</p>
+<p class="p1"><span class="Apple-converted-space">                                        </span>className="bg-gray-600 hover:bg-gray-700 active:bg-gray-800 py-3 rounded-lg font-bold"</p>
+<p class="p1"><span class="Apple-converted-space">                                    </span>&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                                        </span>閉じる</p>
+<p class="p1"><span class="Apple-converted-space">                                    </span>&lt;/button&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                                </span>&lt;/div&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                            </span>&lt;/div&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                        </span>&lt;/div&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                    </span>)}</p>
+<p class="p2"><br></p>
+<p class="p1"><span class="Apple-converted-space">                    </span>{/* Game Table */}</p>
+<p class="p1"><span class="Apple-converted-space">                    </span>&lt;div className="bg-green-700 rounded-2xl p-6 mb-6 shadow-2xl"&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                        </span>{/* Banker */}</p>
+<p class="p1"><span class="Apple-converted-space">                        </span>&lt;div className="mb-8"&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                            </span>&lt;div className="text-center mb-3"&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                                </span>&lt;span className="text-xl font-bold"&gt;バンカー&lt;/span&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                                </span>{bankerCards.length &gt; 0 &amp;&amp; (</p>
+<p class="p1"><span class="Apple-converted-space">                                    </span>&lt;span className="ml-3 text-2xl text-yellow-300"&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                                        </span>{calculateScore(bankerCards)}</p>
+<p class="p1"><span class="Apple-converted-space">                                    </span>&lt;/span&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                                </span>)}</p>
+<p class="p1"><span class="Apple-converted-space">                            </span>&lt;/div&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                            </span>&lt;div className="flex justify-center gap-2"&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                                </span>{bankerCards.map((card, i) =&gt; (</p>
+<p class="p1"><span class="Apple-converted-space">                                    </span>&lt;Card key={i} card={card} /&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                                </span>))}</p>
+<p class="p1"><span class="Apple-converted-space">                            </span>&lt;/div&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                        </span>&lt;/div&gt;</p>
+<p class="p2"><br></p>
+<p class="p1"><span class="Apple-converted-space">                        </span>{/* VS */}</p>
+<p class="p1"><span class="Apple-converted-space">                        </span>&lt;div className="text-center text-2xl font-bold mb-8"&gt;VS&lt;/div&gt;</p>
+<p class="p2"><br></p>
+<p class="p1"><span class="Apple-converted-space">                        </span>{/* Player */}</p>
+<p class="p1"><span class="Apple-converted-space">                        </span>&lt;div&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                            </span>&lt;div className="text-center mb-3"&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                                </span>&lt;span className="text-xl font-bold"&gt;プレイヤー&lt;/span&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                                </span>{playerCards.length &gt; 0 &amp;&amp; (</p>
+<p class="p1"><span class="Apple-converted-space">                                    </span>&lt;span className="ml-3 text-2xl text-yellow-300"&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                                        </span>{calculateScore(playerCards)}</p>
+<p class="p1"><span class="Apple-converted-space">                                    </span>&lt;/span&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                                </span>)}</p>
+<p class="p1"><span class="Apple-converted-space">                            </span>&lt;/div&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                            </span>&lt;div className="flex justify-center gap-2"&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                                </span>{playerCards.map((card, i) =&gt; (</p>
+<p class="p1"><span class="Apple-converted-space">                                    </span>&lt;Card key={i} card={card} /&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                                </span>))}</p>
+<p class="p1"><span class="Apple-converted-space">                            </span>&lt;/div&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                        </span>&lt;/div&gt;</p>
+<p class="p2"><br></p>
+<p class="p1"><span class="Apple-converted-space">                        </span>{/* Result Message */}</p>
+<p class="p1"><span class="Apple-converted-space">                        </span>{gameState !== 'betting' &amp;&amp; (</p>
+<p class="p1"><span class="Apple-converted-space">                            </span>&lt;div className="text-center mt-6 text-xl font-bold text-yellow-300"&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                                </span>{message}</p>
+<p class="p1"><span class="Apple-converted-space">                            </span>&lt;/div&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                        </span>)}</p>
+<p class="p1"><span class="Apple-converted-space">                    </span>&lt;/div&gt;</p>
+<p class="p2"><br></p>
+<p class="p1"><span class="Apple-converted-space">                    </span>{/* Betting Area */}</p>
+<p class="p1"><span class="Apple-converted-space">                    </span>{gameState === 'betting' &amp;&amp; (</p>
+<p class="p1"><span class="Apple-converted-space">                        </span>&lt;div className="mb-6"&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                            </span>&lt;div className="text-center mb-4 text-lg"&gt;{message}&lt;/div&gt;</p>
+<p class="p2"><span class="Apple-converted-space">                            </span></p>
+<p class="p1"><span class="Apple-converted-space">                            </span>{/* Bet Display with Input */}</p>
+<p class="p1"><span class="Apple-converted-space">                            </span>&lt;div className="grid grid-cols-3 gap-3 mb-4"&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                                </span>&lt;div className="bg-blue-600 p-3 rounded-xl text-center"&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                                    </span>&lt;div className="text-sm mb-2"&gt;プレイヤー&lt;/div&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                                    </span>&lt;input</p>
+<p class="p1"><span class="Apple-converted-space">                                        </span>type="text"</p>
+<p class="p1"><span class="Apple-converted-space">                                        </span>inputMode="numeric"</p>
+<p class="p1"><span class="Apple-converted-space">                                        </span>pattern="[0-9,]*"</p>
+<p class="p1"><span class="Apple-converted-space">                                        </span>value={bet.player ? formatNumberWithCommas(bet.player) : ''}</p>
+<p class="p1"><span class="Apple-converted-space">                                        </span>onChange={(e) =&gt; setBetDirect('player', e.target.value)}</p>
+<p class="p1"><span class="Apple-converted-space">                                        </span>placeholder="0"</p>
+<p class="p1"><span class="Apple-converted-space">                                        </span>className="w-full bg-blue-700 text-white text-center text-lg font-bold py-2 rounded-lg border-2 border-blue-400 focus:outline-none focus:border-white"</p>
+<p class="p1"><span class="Apple-converted-space">                                    </span>/&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                                    </span>&lt;div className="text-xs text-blue-200 mt-1"&gt;2倍&lt;/div&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                                </span>&lt;/div&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                                </span>&lt;div className="bg-red-600 p-3 rounded-xl text-center"&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                                    </span>&lt;div className="text-sm mb-2"&gt;バンカー&lt;/div&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                                    </span>&lt;input</p>
+<p class="p1"><span class="Apple-converted-space">                                        </span>type="text"</p>
+<p class="p1"><span class="Apple-converted-space">                                        </span>inputMode="numeric"</p>
+<p class="p1"><span class="Apple-converted-space">                                        </span>pattern="[0-9,]*"</p>
+<p class="p1"><span class="Apple-converted-space">                                        </span>value={bet.banker ? formatNumberWithCommas(bet.banker) : ''}</p>
+<p class="p1"><span class="Apple-converted-space">                                        </span>onChange={(e) =&gt; setBetDirect('banker', e.target.value)}</p>
+<p class="p1"><span class="Apple-converted-space">                                        </span>placeholder="0"</p>
+<p class="p1"><span class="Apple-converted-space">                                        </span>className="w-full bg-red-700 text-white text-center text-lg font-bold py-2 rounded-lg border-2 border-red-400 focus:outline-none focus:border-white"</p>
+<p class="p1"><span class="Apple-converted-space">                                    </span>/&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                                    </span>&lt;div className="text-xs text-red-200 mt-1"&gt;1.95倍&lt;/div&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                                </span>&lt;/div&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                                </span>&lt;div className="bg-yellow-600 p-3 rounded-xl text-center"&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                                    </span>&lt;div className="text-sm mb-2"&gt;タイ&lt;/div&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                                    </span>&lt;input</p>
+<p class="p1"><span class="Apple-converted-space">                                        </span>type="text"</p>
+<p class="p1"><span class="Apple-converted-space">                                        </span>inputMode="numeric"</p>
+<p class="p1"><span class="Apple-converted-space">                                        </span>pattern="[0-9,]*"</p>
+<p class="p1"><span class="Apple-converted-space">                                        </span>value={bet.tie ? formatNumberWithCommas(bet.tie) : ''}</p>
+<p class="p1"><span class="Apple-converted-space">                                        </span>onChange={(e) =&gt; setBetDirect('tie', e.target.value)}</p>
+<p class="p1"><span class="Apple-converted-space">                                        </span>placeholder="0"</p>
+<p class="p1"><span class="Apple-converted-space">                                        </span>className="w-full bg-yellow-700 text-white text-center text-lg font-bold py-2 rounded-lg border-2 border-yellow-400 focus:outline-none focus:border-white"</p>
+<p class="p1"><span class="Apple-converted-space">                                    </span>/&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                                    </span>&lt;div className="text-xs text-yellow-200 mt-1"&gt;9倍&lt;/div&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                                </span>&lt;/div&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                            </span>&lt;/div&gt;</p>
+<p class="p2"><br></p>
+<p class="p1"><span class="Apple-converted-space">                            </span>{/* Quick Chip Selection */}</p>
+<p class="p1"><span class="Apple-converted-space">                            </span>&lt;div className="mb-3 text-center text-sm text-gray-300"&gt;クイックベット&lt;/div&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                            </span>&lt;div className="grid grid-cols-4 gap-2 mb-4"&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                                </span>{[100, 500, 1000, 5000].map(amount =&gt; (</p>
+<p class="p1"><span class="Apple-converted-space">                                    </span>&lt;button</p>
+<p class="p1"><span class="Apple-converted-space">                                        </span>key={`p-${amount}`}</p>
+<p class="p1"><span class="Apple-converted-space">                                        </span>onClick={() =&gt; addBet('player', amount)}</p>
+<p class="p1"><span class="Apple-converted-space">                                        </span>className="bg-blue-500 hover:bg-blue-600 active:bg-blue-700 py-2 px-1 rounded-lg font-bold text-sm"</p>
+<p class="p1"><span class="Apple-converted-space">                                    </span>&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                                        </span>P +{amount &gt;= 1000 ? `${amount/1000}k` : amount}</p>
+<p class="p1"><span class="Apple-converted-space">                                    </span>&lt;/button&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                                </span>))}</p>
+<p class="p1"><span class="Apple-converted-space">                                </span>{[100, 500, 1000, 5000].map(amount =&gt; (</p>
+<p class="p1"><span class="Apple-converted-space">                                    </span>&lt;button</p>
+<p class="p1"><span class="Apple-converted-space">                                        </span>key={`b-${amount}`}</p>
+<p class="p1"><span class="Apple-converted-space">                                        </span>onClick={() =&gt; addBet('banker', amount)}</p>
+<p class="p1"><span class="Apple-converted-space">                                        </span>className="bg-red-500 hover:bg-red-600 active:bg-red-700 py-2 px-1 rounded-lg font-bold text-sm"</p>
+<p class="p1"><span class="Apple-converted-space">                                    </span>&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                                        </span>B +{amount &gt;= 1000 ? `${amount/1000}k` : amount}</p>
+<p class="p1"><span class="Apple-converted-space">                                    </span>&lt;/button&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                                </span>))}</p>
+<p class="p1"><span class="Apple-converted-space">                                </span>{[100, 500, 1000, 5000].map(amount =&gt; (</p>
+<p class="p1"><span class="Apple-converted-space">                                    </span>&lt;button</p>
+<p class="p1"><span class="Apple-converted-space">                                        </span>key={`t-${amount}`}</p>
+<p class="p1"><span class="Apple-converted-space">                                        </span>onClick={() =&gt; addBet('tie', amount)}</p>
+<p class="p1"><span class="Apple-converted-space">                                        </span>className="bg-yellow-500 hover:bg-yellow-600 active:bg-yellow-700 py-2 px-1 rounded-lg font-bold text-sm"</p>
+<p class="p1"><span class="Apple-converted-space">                                    </span>&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                                        </span>T +{amount &gt;= 1000 ? `${amount/1000}k` : amount}</p>
+<p class="p1"><span class="Apple-converted-space">                                    </span>&lt;/button&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                                </span>))}</p>
+<p class="p1"><span class="Apple-converted-space">                            </span>&lt;/div&gt;</p>
+<p class="p2"><br></p>
+<p class="p1"><span class="Apple-converted-space">                            </span>{/* Action Buttons */}</p>
+<p class="p1"><span class="Apple-converted-space">                            </span>&lt;div className="grid grid-cols-2 gap-3"&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                                </span>&lt;button</p>
+<p class="p1"><span class="Apple-converted-space">                                    </span>onClick={clearBets}</p>
+<p class="p1"><span class="Apple-converted-space">                                    </span>className="bg-gray-600 hover:bg-gray-700 active:bg-gray-800 py-4 rounded-lg font-bold text-lg"</p>
+<p class="p1"><span class="Apple-converted-space">                                </span>&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                                    </span>クリア</p>
+<p class="p1"><span class="Apple-converted-space">                                </span>&lt;/button&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                                </span>&lt;button</p>
+<p class="p1"><span class="Apple-converted-space">                                    </span>onClick={dealCards}</p>
+<p class="p1"><span class="Apple-converted-space">                                    </span>className="bg-green-500 hover:bg-green-600 active:bg-green-700 py-4 rounded-lg font-bold text-lg"</p>
+<p class="p1"><span class="Apple-converted-space">                                </span>&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                                    </span>ディール</p>
+<p class="p1"><span class="Apple-converted-space">                                </span>&lt;/button&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                            </span>&lt;/div&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                        </span>&lt;/div&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                    </span>)}</p>
+<p class="p2"><br></p>
+<p class="p1"><span class="Apple-converted-space">                    </span>{/* New Game Button */}</p>
+<p class="p1"><span class="Apple-converted-space">                    </span>{gameState === 'result' &amp;&amp; (</p>
+<p class="p1"><span class="Apple-converted-space">                        </span>&lt;div className="mb-6"&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                            </span>&lt;button</p>
+<p class="p1"><span class="Apple-converted-space">                                </span>onClick={newGame}</p>
+<p class="p1"><span class="Apple-converted-space">                                </span>className="w-full bg-green-500 hover:bg-green-600 active:bg-green-700 py-4 rounded-lg font-bold text-xl"</p>
+<p class="p1"><span class="Apple-converted-space">                            </span>&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                                </span>新しいゲーム</p>
+<p class="p1"><span class="Apple-converted-space">                            </span>&lt;/button&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                        </span>&lt;/div&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                    </span>)}</p>
+<p class="p2"><br></p>
+<p class="p1"><span class="Apple-converted-space">                    </span>{/* History */}</p>
+<p class="p1"><span class="Apple-converted-space">                    </span>{history.length &gt; 0 &amp;&amp; (</p>
+<p class="p1"><span class="Apple-converted-space">                        </span>&lt;div className="bg-gray-800 bg-opacity-50 rounded-xl p-4"&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                            </span>&lt;h3 className="text-lg font-bold mb-3"&gt;履歴&lt;/h3&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                            </span>&lt;div className="flex gap-2 overflow-x-auto pb-2"&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                                </span>{history.map((h, i) =&gt; (</p>
+<p class="p1"><span class="Apple-converted-space">                                    </span>&lt;div</p>
+<p class="p1"><span class="Apple-converted-space">                                        </span>key={i}</p>
+<p class="p1"><span class="Apple-converted-space">                                        </span>className={`flex-shrink-0 w-16 h-16 rounded-lg flex items-center justify-center font-bold text-sm ${</p>
+<p class="p1"><span class="Apple-converted-space">                                            </span>h.result.includes('プレイヤー') ? 'bg-blue-600' :</p>
+<p class="p1"><span class="Apple-converted-space">                                            </span>h.result.includes('バンカー') ? 'bg-red-600' : 'bg-yellow-600'</p>
+<p class="p1"><span class="Apple-converted-space">                                        </span>}`}</p>
+<p class="p1"><span class="Apple-converted-space">                                    </span>&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                                        </span>&lt;div className="text-center"&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                                            </span>&lt;div className="text-xs"&gt;{h.pScore}-{h.bScore}&lt;/div&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                                            </span>&lt;div className={h.profit &gt;= 0 ? 'text-green-300' : 'text-red-300'}&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                                                </span>{h.profit &gt;= 0 ? '+' : ''}{h.profit}</p>
+<p class="p1"><span class="Apple-converted-space">                                            </span>&lt;/div&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                                        </span>&lt;/div&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                                    </span>&lt;/div&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                                </span>))}</p>
+<p class="p1"><span class="Apple-converted-space">                            </span>&lt;/div&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                        </span>&lt;/div&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                    </span>)}</p>
+<p class="p1"><span class="Apple-converted-space">                </span>&lt;/div&gt;</p>
+<p class="p1"><span class="Apple-converted-space">            </span>);</p>
+<p class="p1"><span class="Apple-converted-space">        </span>};</p>
+<p class="p2"><br></p>
+<p class="p1"><span class="Apple-converted-space">        </span>const root = ReactDOM.createRoot(document.getElementById('root'));</p>
+<p class="p1"><span class="Apple-converted-space">        </span>root.render(&lt;BaccaratGame /&gt;);</p>
+<p class="p1"><span class="Apple-converted-space">    </span>&lt;/script&gt;</p>
+<p class="p1">&lt;/body&gt;</p>
+<p class="p1">&lt;/html&gt;</p>
+</body>
+</html>
