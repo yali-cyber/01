@@ -262,31 +262,33 @@
                     if (profit > newStats.maxWin) newStats.maxWin = profit;
                     if (profit < newStats.maxLoss) newStats.maxLoss = profit;
 
-                    // Track streaks
-                    if (profit > 0) {
-                        // 勝利時のベット金額を合計
-                        newStats.totalWinBet += totalBet;
-                        
-                        if (prevStats.currentStreak > 0) {
-                            newStats.currentStreak = prevStats.currentStreak + 1;
+                    // Track streaks - タイの場合は連勝・連敗カウントを変更しない
+                    if (winner !== 'tie') {
+                        if (profit > 0) {
+                            // 勝利時のベット金額を合計
+                            newStats.totalWinBet += totalBet;
+                            
+                            if (prevStats.currentStreak > 0) {
+                                newStats.currentStreak = prevStats.currentStreak + 1;
+                            } else {
+                                newStats.currentStreak = 1;
+                            }
+                            if (newStats.currentStreak > newStats.maxWinStreak) {
+                                newStats.maxWinStreak = newStats.currentStreak;
+                            }
+                            // 倍掛け2連勝を検出: 前回勝利待機中 + 今回のベット額が前回勝利時の2倍 + 今回も勝利
+                            if (isWaitingForDouble && lastWinBetAmount > 0 && totalBet === lastWinBetAmount * 2) {
+                                newStats.twoWinStreak += 1;
+                            }
                         } else {
-                            newStats.currentStreak = 1;
-                        }
-                        if (newStats.currentStreak > newStats.maxWinStreak) {
-                            newStats.maxWinStreak = newStats.currentStreak;
-                        }
-                        // 倍掛け2連勝を検出: 前回勝利待機中 + 今回のベット額が前回勝利時の2倍 + 今回も勝利
-                        if (isWaitingForDouble && lastWinBetAmount > 0 && totalBet === lastWinBetAmount * 2) {
-                            newStats.twoWinStreak += 1;
-                        }
-                    } else {
-                        if (prevStats.currentStreak < 0) {
-                            newStats.currentStreak = prevStats.currentStreak - 1;
-                        } else {
-                            newStats.currentStreak = -1;
-                        }
-                        if (Math.abs(newStats.currentStreak) > newStats.maxLoseStreak) {
-                            newStats.maxLoseStreak = Math.abs(newStats.currentStreak);
+                            if (prevStats.currentStreak < 0) {
+                                newStats.currentStreak = prevStats.currentStreak - 1;
+                            } else {
+                                newStats.currentStreak = -1;
+                            }
+                            if (Math.abs(newStats.currentStreak) > newStats.maxLoseStreak) {
+                                newStats.maxLoseStreak = Math.abs(newStats.currentStreak);
+                            }
                         }
                     }
 
