@@ -12,37 +12,19 @@
     <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        * {
-            -webkit-tap-highlight-color: transparent;
-            -webkit-touch-callout: none;
-        }
-        body {
-            margin: 0;
-            padding: 0;
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Helvetica', 'Arial', sans-serif;
-            overflow-x: hidden;
-            -webkit-user-select: none;
-            user-select: none;
-        }
-        input {
-            -webkit-user-select: text;
-            user-select: text;
-        }
-        input[type="number"]::-webkit-inner-spin-button,
-        input[type="number"]::-webkit-outer-spin-button {
-            -webkit-appearance: none;
-            margin: 0;
-        }
-        input[type="number"] {
-            -moz-appearance: textfield;
-        }
-        button {
-            -webkit-tap-highlight-color: rgba(0, 0, 0, 0.1);
-        }
-        .modal-content {
-            max-height: 85vh;
-            overflow-y: auto;
-            -webkit-overflow-scrolling: touch;
+        * { -webkit-tap-highlight-color: transparent; -webkit-touch-callout: none; box-sizing: border-box; }
+        body { margin:0; padding:0; font-family:-apple-system,BlinkMacSystemFont,'Helvetica','Arial',sans-serif; overflow-x:hidden; -webkit-user-select:none; user-select:none; background:#14532d; }
+        input { -webkit-user-select:text; user-select:text; }
+        input[type="number"]::-webkit-inner-spin-button, input[type="number"]::-webkit-outer-spin-button { -webkit-appearance:none; margin:0; }
+        input[type="number"] { -moz-appearance:textfield; }
+        button { -webkit-tap-highlight-color:rgba(0,0,0,0.1); }
+        .modal-content { max-height:85vh; overflow-y:auto; -webkit-overflow-scrolling:touch; }
+        .safe-bottom { padding-bottom:max(12px,env(safe-area-inset-bottom)); }
+        .safe-top { padding-top:max(8px,env(safe-area-inset-top)); }
+        .hide-scrollbar::-webkit-scrollbar { display:none; }
+        .hide-scrollbar { -ms-overflow-style:none; scrollbar-width:none; }
+        @media(min-width:768px) {
+            body { overflow-y:auto; }
         }
     </style>
 </head>
@@ -50,7 +32,40 @@
     <div id="root"></div>
 
     <script type="text/babel">
-        const { useState } = React;
+        const { useState, useRef, useEffect, useMemo } = React;
+
+        const ModalShell = ({show, children}) => show ? (
+            <div className="fixed inset-0 bg-black bg-opacity-75 flex items-end md:items-center justify-center z-50">
+                <div className="bg-gray-800 rounded-t-2xl md:rounded-2xl p-5 w-full max-w-md modal-content safe-bottom">
+                    <div className="w-10 h-1 bg-gray-600 rounded-full mx-auto mb-4 md:hidden"></div>
+                    {children}
+                </div>
+            </div>
+        ) : null;
+
+        const formatNumberWithCommas = (n) => { if(!n)return''; return n.toString().replace(/\B(?=(\d{3})+(?!\d))/g,','); };
+        const removeCommas = (s) => s.replace(/,/g,'');
+
+        const BetInputs = ({bet, setBetDirect, big}) => (
+            <div className={`grid grid-cols-3 ${big?'gap-4':'gap-2'}`}>
+                {[
+                    {key:'player',label:'PLAYER',color:'red',sub:'×2'},
+                    {key:'banker',label:'BANKER',color:'blue',sub:'×2 (6→×1.5)'},
+                    {key:'tie',label:'TIE',color:'yellow',sub:'×9'}
+                ].map(b=>(
+                    <div key={b.key} className={`bg-${b.color}-600 bg-opacity-80 ${big?'p-4':'p-2'} rounded-lg text-center`}>
+                        <div className={`${big?'text-sm':'text-[10px]'} font-bold mb-1.5`}>{b.label}</div>
+                        <input type="text" inputMode="numeric" pattern="[0-9,]*"
+                            value={bet[b.key]?formatNumberWithCommas(bet[b.key]):''}
+                            onChange={(e)=>setBetDirect(b.key,e.target.value)}
+                            placeholder="0"
+                            className={`w-full bg-${b.color}-700 bg-opacity-60 text-white text-center ${big?'text-xl py-3':'text-sm py-1.5'} font-bold rounded border border-${b.color}-400 border-opacity-50 focus:outline-none focus:border-white`}
+                        />
+                        <div className={`${big?'text-xs':'text-[9px]'} opacity-60 mt-1`}>{b.sub}</div>
+                    </div>
+                ))}
+            </div>
+        );
 
         const BaccaratGame = () => {
             const [balance, setBalance] = useState(10000);
@@ -65,718 +80,497 @@
             const [balanceInput, setBalanceInput] = useState('');
             const [showStatsModal, setShowStatsModal] = useState(false);
             const [stats, setStats] = useState({
-                totalGames: 0,
-                playerWins: 0,
-                bankerWins: 0,
-                ties: 0,
-                totalProfit: 0,
-                totalBet: 0,
-                totalWinBet: 0,
-                maxWin: 0,
-                maxLoss: 0,
-                currentStreak: 0,
-                streakType: '',
-                maxWinStreak: 0,
-                maxLoseStreak: 0,
-                twoWinStreak: 0
+                totalGames:0,playerWins:0,bankerWins:0,ties:0,
+                totalProfit:0,totalBet:0,totalWinBet:0,
+                maxWin:0,maxLoss:0,currentStreak:0,streakType:'',
+                maxWinStreak:0,maxLoseStreak:0,twoWinStreak:0
             });
             const [lastWinBetAmount, setLastWinBetAmount] = useState(0);
             const [isWaitingForDouble, setIsWaitingForDouble] = useState(false);
+            const [roadHistory, setRoadHistory] = useState([]);
+            const [lastBet, setLastBet] = useState(null);
+            const [isLookMode, setIsLookMode] = useState(false);
+            const [shoeHandCount, setShoeHandCount] = useState(0);
+            const [needsShuffle, setNeedsShuffle] = useState(false);
+            const [showHistory, setShowHistory] = useState(false);
+            const roadScrollRef = useRef(null);
+            const shoeRef = useRef([]);
 
-            const suits = ['♠', '♥', '♦', '♣'];
-            const ranks = ['A', '2', '3', '4', '5', '6', '7', '8', '9', '10', 'J', 'Q', 'K'];
+            const DECK_COUNT = 8;
+            const suits = ['♠','♥','♦','♣'];
+            const ranks = ['A','2','3','4','5','6','7','8','9','10','J','Q','K'];
+            const CUT_CARD_POSITION = 15;
 
-            const getCardValue = (rank) => {
-                if (rank === 'A') return 1;
-                if (['J', 'Q', 'K', '10'].includes(rank)) return 0;
-                return parseInt(rank);
+            const createShoe = () => {
+                const shoe = [];
+                for (let d=0;d<DECK_COUNT;d++) for (const s of suits) for (const r of ranks) shoe.push({suit:s,rank:r});
+                for (let i=shoe.length-1;i>0;i--) { const j=Math.floor(Math.random()*(i+1));[shoe[i],shoe[j]]=[shoe[j],shoe[i]]; }
+                return shoe;
             };
+            if (shoeRef.current.length===0) shoeRef.current=createShoe();
 
-            const calculateScore = (cards) => {
-                const total = cards.reduce((sum, card) => sum + getCardValue(card.rank), 0);
-                return total % 10;
-            };
-
-            const drawCard = () => {
-                const suit = suits[Math.floor(Math.random() * suits.length)];
-                const rank = ranks[Math.floor(Math.random() * ranks.length)];
-                return { suit, rank };
-            };
+            const shuffleShoe = () => { shoeRef.current=createShoe(); setShoeHandCount(0); setNeedsShuffle(false); setMessage('新しいシューをシャッフルしました'); };
+            const getCardValue = (r) => { if(r==='A')return 1; if(['J','Q','K','10'].includes(r))return 0; return parseInt(r); };
+            const calculateScore = (cards) => cards.reduce((s,c)=>s+getCardValue(c.rank),0)%10;
+            const drawCard = () => { if(shoeRef.current.length===0)shoeRef.current=createShoe(); return shoeRef.current.pop(); };
 
             const addBet = (type, amount) => {
-                if (gameState !== 'betting') return;
-                const totalBet = bet.player + bet.banker + bet.tie + amount;
-                if (totalBet > balance) {
-                    setMessage('残高が不足しています');
-                    return;
-                }
-                setBet({ ...bet, [type]: bet[type] + amount });
-                setMessage(`${type === 'player' ? 'プレイヤー' : type === 'banker' ? 'バンカー' : 'タイ'}に${amount}円追加`);
+                if(gameState!=='betting')return;
+                if(bet.player+bet.banker+bet.tie+amount>balance){setMessage('残高不足');return;}
+                setBet({...bet,[type]:bet[type]+amount});
             };
-
-            const formatNumberWithCommas = (num) => {
-                if (!num) return '';
-                return num.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',');
-            };
-
-            const removeCommas = (str) => {
-                return str.replace(/,/g, '');
-            };
-
             const setBetDirect = (type, value) => {
-                if (gameState !== 'betting') return;
-                const cleanValue = removeCommas(value);
-                const amount = parseInt(cleanValue) || 0;
-                if (amount < 0) return;
-                
-                const otherBets = Object.entries(bet)
-                    .filter(([key]) => key !== type)
-                    .reduce((sum, [, val]) => sum + val, 0);
-                
-                if (otherBets + amount > balance) {
-                    setMessage('残高が不足しています');
-                    return;
-                }
-                
-                setBet({ ...bet, [type]: amount });
+                if(gameState!=='betting')return;
+                const amount=parseInt(removeCommas(value))||0;
+                if(amount<0)return;
+                const other=Object.entries(bet).filter(([k])=>k!==type).reduce((s,[,v])=>s+v,0);
+                if(other+amount>balance){setMessage('残高不足');return;}
+                setBet({...bet,[type]:amount});
             };
+            const clearBets = () => { if(gameState!=='betting')return; setBet({player:0,banker:0,tie:0}); setMessage('クリア'); };
 
-            const clearBets = () => {
-                if (gameState !== 'betting') return;
-                setBet({ player: 0, banker: 0, tie: 0 });
-                setMessage('賭け金をクリアしました');
+            const lookDeal = () => {
+                if(needsShuffle){setMessage('シューを切り直してください');return;}
+                setIsLookMode(true); setBet({player:0,banker:0,tie:0}); setGameState('dealing'); startDeal(true,{player:0,banker:0,tie:0});
             };
-
             const dealCards = () => {
-                const totalBet = bet.player + bet.banker + bet.tie;
-                if (totalBet === 0) {
-                    setMessage('賭け金を設定してください');
+                if(needsShuffle){setMessage('シューを切り直してください');return;}
+                if(bet.player+bet.banker+bet.tie===0){setMessage('賭け金を設定');return;}
+                setIsLookMode(false); setGameState('dealing'); startDeal(false,{player:bet.player,banker:bet.banker,tie:bet.tie});
+            };
+
+            const startDeal = (isLook, currentBet) => {
+                setTimeout(()=>{
+                    const pCards=[drawCard(),drawCard()], bCards=[drawCard(),drawCard()];
+                    setPlayerCards(pCards); setBankerCards(bCards);
+                    const pS=calculateScore(pCards), bS=calculateScore(bCards);
+                    if(pS>=8||bS>=8){determineWinner(pCards,bCards,isLook,currentBet);return;}
+                    let nP=[...pCards],nB=[...bCards];
+                    if(pS<=5){
+                        setTimeout(()=>{
+                            const tc=drawCard(); nP=[...pCards,tc]; setPlayerCards(nP);
+                            const tv=getCardValue(tc.rank);
+                            const bd=(bS<=2)||(bS===3&&tv!==8)||(bS===4&&[2,3,4,5,6,7].includes(tv))||(bS===5&&[4,5,6,7].includes(tv))||(bS===6&&[6,7].includes(tv));
+                            if(bd){setTimeout(()=>{nB=[...bCards,drawCard()];setBankerCards(nB);setTimeout(()=>determineWinner(nP,nB,isLook,currentBet),400);},400);}
+                            else{setTimeout(()=>determineWinner(nP,nB,isLook,currentBet),400);}
+                        },600);
+                    } else if(bS<=5){
+                        setTimeout(()=>{nB=[...bCards,drawCard()];setBankerCards(nB);setTimeout(()=>determineWinner(nP,nB,isLook,currentBet),400);},600);
+                    } else { setTimeout(()=>determineWinner(nP,nB,isLook,currentBet),600); }
+                },300);
+            };
+
+            const determineWinner = (pCards, bCards, isLook, currentBet) => {
+                const pScore=calculateScore(pCards), bScore=calculateScore(bCards);
+                let resultText='',winner='';
+                if(pScore>bScore){resultText='プレイヤーの勝ち!';winner='player';}
+                else if(bScore>pScore){resultText=bScore===6?'バンカーの勝ち! (6)':'バンカーの勝ち!';winner='banker';}
+                else{resultText='タイ!';winner='tie';}
+
+                setRoadHistory(prev=>[...prev,winner==='player'?'P':winner==='banker'?'B':'T']);
+                setShoeHandCount(prev=>prev+1);
+                if(shoeRef.current.length<=CUT_CARD_POSITION)setNeedsShuffle(true);
+
+                if(isLook){
+                    setResult(resultText); setMessage(`[LOOK] ${resultText}`); setGameState('result');
+                    setHistory(prev=>[{result:resultText,profit:0,pScore,bScore,winner,isLook:true},...prev.slice(0,99)]);
+                    setStats(prev=>{const n={...prev};n.totalGames+=1;if(winner==='player')n.playerWins+=1;else if(winner==='banker')n.bankerWins+=1;else n.ties+=1;return n;});
                     return;
                 }
-
-                setGameState('dealing');
-                setMessage('カードを配っています...');
-
-                setTimeout(() => {
-                    const pCards = [drawCard(), drawCard()];
-                    const bCards = [drawCard(), drawCard()];
-                    setPlayerCards(pCards);
-                    setBankerCards(bCards);
-
-                    const pScore = calculateScore(pCards);
-                    const bScore = calculateScore(bCards);
-
-                    if (pScore >= 8 || bScore >= 8) {
-                        determineWinner(pCards, bCards);
-                        return;
+                let winAmount=0;
+                if(winner==='player')winAmount=currentBet.player*2;
+                else if(winner==='banker')winAmount=bScore===6?Math.floor(currentBet.banker*1.5):currentBet.banker*2;
+                else winAmount=currentBet.tie*9+currentBet.player+currentBet.banker;
+                const totalBet=currentBet.player+currentBet.banker+currentBet.tie, profit=winAmount-totalBet;
+                setResult(resultText); setBalance(prev=>prev-totalBet+winAmount);
+                setMessage(`${resultText} ${profit>=0?'+':''}${profit.toLocaleString()}円`);
+                setGameState('result'); setLastBet({...currentBet});
+                setHistory(prev=>[{result:resultText,profit,pScore,bScore,winner},...prev.slice(0,99)]);
+                setStats(prev=>{
+                    const n={...prev};n.totalGames+=1;n.totalBet+=totalBet;n.totalProfit+=profit;
+                    if(winner==='player')n.playerWins+=1;else if(winner==='banker')n.bankerWins+=1;else n.ties+=1;
+                    if(profit>n.maxWin)n.maxWin=profit;if(profit<n.maxLoss)n.maxLoss=profit;
+                    if(winner!=='tie'){
+                        if(profit>0){n.totalWinBet+=totalBet;n.currentStreak=prev.currentStreak>0?prev.currentStreak+1:1;if(n.currentStreak>n.maxWinStreak)n.maxWinStreak=n.currentStreak;if(isWaitingForDouble&&lastWinBetAmount>0&&totalBet===lastWinBetAmount*2)n.twoWinStreak+=1;}
+                        else{n.currentStreak=prev.currentStreak<0?prev.currentStreak-1:-1;if(Math.abs(n.currentStreak)>n.maxLoseStreak)n.maxLoseStreak=Math.abs(n.currentStreak);}
                     }
-
-                    let newPCards = [...pCards];
-                    let newBCards = [...bCards];
-
-                    if (pScore <= 5) {
-                        setTimeout(() => {
-                            const thirdCard = drawCard();
-                            newPCards = [...pCards, thirdCard];
-                            setPlayerCards(newPCards);
-
-                            const playerThirdValue = getCardValue(thirdCard.rank);
-                            const shouldBankerDraw = 
-                                (bScore <= 2) ||
-                                (bScore === 3 && playerThirdValue !== 8) ||
-                                (bScore === 4 && [2, 3, 4, 5, 6, 7].includes(playerThirdValue)) ||
-                                (bScore === 5 && [4, 5, 6, 7].includes(playerThirdValue)) ||
-                                (bScore === 6 && [6, 7].includes(playerThirdValue));
-
-                            if (shouldBankerDraw) {
-                                setTimeout(() => {
-                                    newBCards = [...bCards, drawCard()];
-                                    setBankerCards(newBCards);
-                                    setTimeout(() => determineWinner(newPCards, newBCards), 500);
-                                }, 500);
-                            } else {
-                                setTimeout(() => determineWinner(newPCards, newBCards), 500);
-                            }
-                        }, 1000);
-                    } else if (bScore <= 5) {
-                        setTimeout(() => {
-                            newBCards = [...bCards, drawCard()];
-                            setBankerCards(newBCards);
-                            setTimeout(() => determineWinner(newPCards, newBCards), 500);
-                        }, 1000);
-                    } else {
-                        setTimeout(() => determineWinner(newPCards, newBCards), 1000);
-                    }
-                }, 500);
-            };
-
-            const determineWinner = (pCards, bCards) => {
-                const pScore = calculateScore(pCards);
-                const bScore = calculateScore(bCards);
-                
-                let winAmount = 0;
-                let resultText = '';
-                let winner = '';
-
-                if (pScore > bScore) {
-                    resultText = 'プレイヤーの勝ち!';
-                    winAmount = bet.player * 2;
-                    winner = 'player';
-                } else if (bScore > pScore) {
-                    // シックスバンカー制度: バンカーが6で勝利した場合は1.5倍、それ以外は2倍
-                    if (bScore === 6) {
-                        resultText = 'バンカーの勝ち! (6)';
-                        winAmount = Math.floor(bet.banker * 1.5);
-                    } else {
-                        resultText = 'バンカーの勝ち!';
-                        winAmount = bet.banker * 2;
-                    }
-                    winner = 'banker';
-                } else {
-                    resultText = 'タイ!';
-                    winAmount = bet.tie * 9 + bet.player + bet.banker;
-                    winner = 'tie';
-                }
-
-                const totalBet = bet.player + bet.banker + bet.tie;
-                const profit = winAmount - totalBet;
-
-                setResult(resultText);
-                setBalance(balance - totalBet + winAmount);
-                setMessage(`${resultText} ${profit >= 0 ? '+' : ''}${profit}円`);
-                setGameState('result');
-
-                setHistory([{ result: resultText, profit, pScore, bScore }, ...history.slice(0, 9)]);
-
-                // Update statistics
-                setStats(prevStats => {
-                    const newStats = { ...prevStats };
-                    newStats.totalGames += 1;
-                    newStats.totalBet += totalBet;
-                    newStats.totalProfit += profit;
-                    
-                    if (winner === 'player') newStats.playerWins += 1;
-                    else if (winner === 'banker') newStats.bankerWins += 1;
-                    else if (winner === 'tie') newStats.ties += 1;
-
-                    if (profit > newStats.maxWin) newStats.maxWin = profit;
-                    if (profit < newStats.maxLoss) newStats.maxLoss = profit;
-
-                    // Track streaks - タイの場合は連勝・連敗カウントを変更しない
-                    if (winner !== 'tie') {
-                        if (profit > 0) {
-                            // 勝利時のベット金額を合計
-                            newStats.totalWinBet += totalBet;
-                            
-                            if (prevStats.currentStreak > 0) {
-                                newStats.currentStreak = prevStats.currentStreak + 1;
-                            } else {
-                                newStats.currentStreak = 1;
-                            }
-                            if (newStats.currentStreak > newStats.maxWinStreak) {
-                                newStats.maxWinStreak = newStats.currentStreak;
-                            }
-                            // 倍掛け2連勝を検出: 前回勝利待機中 + 今回のベット額が前回勝利時の2倍 + 今回も勝利
-                            if (isWaitingForDouble && lastWinBetAmount > 0 && totalBet === lastWinBetAmount * 2) {
-                                newStats.twoWinStreak += 1;
-                            }
-                        } else {
-                            if (prevStats.currentStreak < 0) {
-                                newStats.currentStreak = prevStats.currentStreak - 1;
-                            } else {
-                                newStats.currentStreak = -1;
-                            }
-                            if (Math.abs(newStats.currentStreak) > newStats.maxLoseStreak) {
-                                newStats.maxLoseStreak = Math.abs(newStats.currentStreak);
-                            }
-                        }
-                    }
-
-                    return newStats;
+                    return n;
                 });
-
-                // 勝敗に応じて状態を更新
-                if (winner !== 'tie') {
-                    if (profit > 0) {
-                        // 勝利: 最後の勝利ベット額を更新し、倍掛け待機状態に
-                        setLastWinBetAmount(totalBet);
-                        setIsWaitingForDouble(true);
-                    } else {
-                        // 負け: 倍掛け待機状態をリセット
-                        setLastWinBetAmount(0);
-                        setIsWaitingForDouble(false);
-                    }
-                }
-                // タイの場合は何も更新しない（状態を維持）
+                if(winner!=='tie'){if(profit>0){setLastWinBetAmount(totalBet);setIsWaitingForDouble(true);}else{setLastWinBetAmount(0);setIsWaitingForDouble(false);}}
             };
 
-            const newGame = () => {
-                setGameState('betting');
-                setBet({ player: 0, banker: 0, tie: 0 });
-                setPlayerCards([]);
-                setBankerCards([]);
-                setResult('');
-                setMessage('賭け金を選択してください');
-            };
-
-            const addBalance = (amount) => {
-                setBalance(balance + amount);
-                setMessage(`残高に${amount.toLocaleString()}円追加しました`);
-            };
-
-            const setBalanceCustom = () => {
-                const amount = parseInt(balanceInput);
-                if (amount && amount >= 0) {
-                    setBalance(amount);
-                    setMessage(`残高を${amount.toLocaleString()}円に設定しました`);
-                    setShowBalanceModal(false);
-                    setBalanceInput('');
-                }
-            };
-
+            const newGame = () => { setGameState('betting');setPlayerCards([]);setBankerCards([]);setBet({player:0,banker:0,tie:0});setResult('');setMessage('賭け金を選択してください'); };
+            const rebet = () => { if(!lastBet)return;if(lastBet.player+lastBet.banker+lastBet.tie>balance){setMessage('残高不足');return;}setBet({...lastBet});setMessage('リベット'); };
+            const doubleBet = () => { if(!lastBet)return;const d={player:lastBet.player*2,banker:lastBet.banker*2,tie:lastBet.tie*2};if(d.player+d.banker+d.tie>balance){setMessage('残高不足');return;}setBet(d);setMessage('2倍ベット'); };
+            const addBalance = (amount) => { setBalance(prev=>prev+amount); setShowBalanceModal(false); };
+            const setBalanceCustom = () => { const a=parseInt(removeCommas(balanceInput));if(a&&a>=0){setBalance(a);setShowBalanceModal(false);setBalanceInput('');} };
             const resetStats = () => {
-                if (window.confirm('統計データをリセットしますか？')) {
-                    setStats({
-                        totalGames: 0,
-                        playerWins: 0,
-                        bankerWins: 0,
-                        ties: 0,
-                        totalProfit: 0,
-                        totalBet: 0,
-                        totalWinBet: 0,
-                        maxWin: 0,
-                        maxLoss: 0,
-                        currentStreak: 0,
-                        streakType: '',
-                        maxWinStreak: 0,
-                        maxLoseStreak: 0,
-                        twoWinStreak: 0
-                    });
-                    setLastWinBetAmount(0);
-                    setIsWaitingForDouble(false);
-                    setMessage('統計データをリセットしました');
+                if(window.confirm('統計データをリセットしますか？')){
+                    setStats({totalGames:0,playerWins:0,bankerWins:0,ties:0,totalProfit:0,totalBet:0,totalWinBet:0,maxWin:0,maxLoss:0,currentStreak:0,streakType:'',maxWinStreak:0,maxLoseStreak:0,twoWinStreak:0});
+                    setLastWinBetAmount(0);setIsWaitingForDouble(false);setRoadHistory([]);setMessage('リセット完了');
                 }
             };
 
-            const Card = ({ card, hidden }) => (
-                <div className={`w-16 h-24 rounded-lg flex items-center justify-center text-2xl font-bold shadow-lg ${
-                    hidden ? 'bg-blue-600' : 'bg-white'
-                } ${card && ['♥', '♦'].includes(card.suit) ? 'text-red-600' : 'text-gray-800'}`}>
-                    {hidden ? '🂠' : (
-                        <div className="text-center">
-                            <div className="text-sm">{card.suit}</div>
-                            <div>{card.rank}</div>
-                        </div>
-                    )}
+            const bigRoad = useMemo(() => {
+                const ROWS=6,grid={};let col=-1,row=0,lastPBType=null,maxCol=-1,dragonTailing=false;
+                for(const r of roadHistory){
+                    if(r==='T'){if(col<0){col=0;row=0;maxCol=0;}else if(!dragonTailing&&row+1<ROWS)row++;else{dragonTailing=true;col++;}grid[`${row},${col}`]={type:'T'};if(col>maxCol)maxCol=col;continue;}
+                    if(r!==lastPBType){col=maxCol+1;row=0;dragonTailing=false;lastPBType=r;}else if(!dragonTailing&&row+1<ROWS)row++;else{dragonTailing=true;col++;}
+                    grid[`${row},${col}`]={type:r};if(col>maxCol)maxCol=col;
+                }
+                return {grid,totalCols:maxCol+1,ROWS};
+            },[roadHistory]);
+
+            useEffect(()=>{if(roadScrollRef.current)roadScrollRef.current.scrollLeft=roadScrollRef.current.scrollWidth;},[roadHistory]);
+
+            const fmtProfit = (p) => (p>=10000||p<=-10000)?`${(p/10000).toFixed(1)}万`:p.toLocaleString();
+
+            // ===== 共通パーツ =====
+            const CardEl = ({card, big}) => (
+                <div className={`${big?'w-20 rounded-xl text-3xl':'w-12 h-16 rounded-md text-base'} flex items-center justify-center font-bold shadow bg-white ${
+                    card&&['♥','♦'].includes(card.suit)?'text-red-600':'text-gray-800'}`}
+                    style={big?{height:112}:{}}>
+                    <div className="text-center leading-none">
+                        <div className={big?'text-base':'text-[10px]'}>{card.suit}</div>
+                        <div>{card.rank}</div>
+                    </div>
                 </div>
             );
 
-            return (
-                <div className="min-h-screen bg-gradient-to-b from-green-800 to-green-900 text-white p-4 pb-20">
-                    {/* Header */}
-                    <div className="text-center mb-6">
-                        <h1 className="text-3xl font-bold mb-2">🎰 バカラ</h1>
-                        <div className="flex items-center justify-center gap-3 mb-3">
-                            <div className="text-2xl font-bold text-yellow-300">¥{balance.toLocaleString()}</div>
-                            <button
-                                onClick={() => setShowBalanceModal(true)}
-                                className="bg-yellow-600 hover:bg-yellow-700 active:bg-yellow-800 text-white px-4 py-2 rounded-lg font-bold text-sm"
-                            >
-                                残高管理
-                            </button>
-                            <button
-                                onClick={() => setShowStatsModal(true)}
-                                className="bg-purple-600 hover:bg-purple-700 active:bg-purple-800 text-white px-4 py-2 rounded-lg font-bold text-sm"
-                            >
-                                📊 統計
-                            </button>
+            const RoadMapEl = ({cellSize=20, gap=24}) => (
+                <div ref={roadScrollRef} className="overflow-x-auto hide-scrollbar" style={{WebkitOverflowScrolling:'touch'}}>
+                    <table style={{borderCollapse:'collapse'}}>
+                        <tbody>
+                            {Array.from({length:bigRoad.ROWS},(_,row)=>(
+                                <tr key={row}>
+                                    {Array.from({length:Math.max(bigRoad.totalCols,1)},(_,col)=>{
+                                        const cell=bigRoad.grid[`${row},${col}`];
+                                        return(
+                                            <td key={col} style={{width:gap,height:gap,minWidth:gap,border:'1px solid rgba(255,255,255,0.06)',padding:0}}>
+                                                {cell&&(
+                                                    <div style={{width:cellSize,height:cellSize,borderRadius:'50%',margin:'auto',
+                                                        border:cell.type==='T'?'none':`2px solid ${cell.type==='P'?'#ef4444':'#3b82f6'}`,
+                                                        background:cell.type==='T'?'#22c55e':'transparent',
+                                                        display:'flex',alignItems:'center',justifyContent:'center',
+                                                        color:'#fff',fontSize:cellSize<22?9:11,fontWeight:'bold'}}>
+                                                        {cell.type==='T'&&'T'}
+                                                    </div>
+                                                )}
+                                            </td>
+                                        );
+                                    })}
+                                </tr>
+                            ))}
+                        </tbody>
+                    </table>
+                </div>
+            );
+
+
+            const QuickBets = ({big}) => (
+                <div className={`grid grid-cols-4 ${big?'gap-2.5':'gap-1'}`}>
+                    {[5000,10000,50000,100000].map(a=>(
+                        <button key={`p${a}`} onClick={()=>addBet('player',a)} className={`bg-red-500 bg-opacity-80 active:bg-red-700 ${big?'py-3 text-base':'py-2 text-[11px]'} rounded-lg font-bold`}>
+                            P+{a>=10000?`${a/10000}万`:`${a/1000}k`}
+                        </button>
+                    ))}
+                    {[5000,10000,50000,100000].map(a=>(
+                        <button key={`b${a}`} onClick={()=>addBet('banker',a)} className={`bg-blue-500 bg-opacity-80 active:bg-blue-700 ${big?'py-3 text-base':'py-2 text-[11px]'} rounded-lg font-bold`}>
+                            B+{a>=10000?`${a/10000}万`:`${a/1000}k`}
+                        </button>
+                    ))}
+                    {[5000,10000,50000,100000].map(a=>(
+                        <button key={`t${a}`} onClick={()=>addBet('tie',a)} className={`bg-yellow-500 bg-opacity-80 active:bg-yellow-700 ${big?'py-3 text-base':'py-2 text-[11px]'} rounded-lg font-bold`}>
+                            T+{a>=10000?`${a/10000}万`:`${a/1000}k`}
+                        </button>
+                    ))}
+                </div>
+            );
+
+            const ActionButtons = ({big}) => {
+                if(gameState==='result') return (
+                    <button onClick={newGame} className={`w-full bg-green-500 active:bg-green-700 hover:bg-green-600 ${big?'py-5 text-2xl':'py-3.5 text-lg'} rounded-xl font-bold`}>次のゲーム</button>
+                );
+                if(gameState==='dealing') return (
+                    <div className={`text-center ${big?'py-5 text-lg':'py-3'} text-yellow-300 font-bold`}>配り中...</div>
+                );
+                return (
+                    <div className={`grid grid-cols-5 ${big?'gap-3':'gap-1.5'}`}>
+                        <button onClick={clearBets} className={`bg-gray-600 active:bg-gray-800 hover:bg-gray-700 ${big?'py-4 text-base':'py-3 text-xs'} rounded-xl font-bold`}>クリア</button>
+                        <button onClick={lookDeal} className={`bg-cyan-600 active:bg-cyan-800 hover:bg-cyan-700 ${big?'py-4 text-base':'py-3 text-xs'} rounded-xl font-bold`}>ルック</button>
+                        <button onClick={rebet} disabled={!lastBet} className={`${big?'py-4 text-base':'py-3 text-xs'} rounded-xl font-bold ${lastBet?'bg-orange-500 active:bg-orange-700 hover:bg-orange-600':'bg-gray-700 text-gray-500'}`}>リベット</button>
+                        <button onClick={doubleBet} disabled={!lastBet} className={`${big?'py-4 text-base':'py-3 text-xs'} rounded-xl font-bold ${lastBet?'bg-pink-600 active:bg-pink-800 hover:bg-pink-700':'bg-gray-700 text-gray-500'}`}>2倍</button>
+                        <button onClick={dealCards} className={`bg-green-500 active:bg-green-700 hover:bg-green-600 ${big?'py-4 text-base':'py-3 text-xs'} rounded-xl font-bold`}>ディール</button>
+                    </div>
+                );
+            };
+
+            const InfoBar = ({compact}) => (
+                <div className={`flex items-center justify-between ${compact?'text-[11px]':'text-base'} text-gray-300`}>
+                    <div className={`flex items-center ${compact?'gap-2':'gap-3'}`}>
+                        <span>🃏{shoeRef.current.length} 第{shoeHandCount}H</span>
+                        <span className="text-red-400 font-bold">P{stats.playerWins}</span>
+                        <span className="text-blue-400 font-bold">B{stats.bankerWins}</span>
+                        <span className="text-green-400 font-bold">T{stats.ties}</span>
+                    </div>
+                    <div className={`font-bold ${stats.totalProfit>=0?'text-green-400':'text-red-400'}`}>
+                        {stats.totalProfit>=0?'+':''}{stats.totalProfit.toLocaleString()}円
+                    </div>
+                </div>
+            );
+
+            const HistoryPanel = ({small}) => (
+                history.length>0 && (
+                    <div>
+                        <div className={`${small?'text-xs':'text-sm'} font-bold mb-2`}>履歴 ({history.length}件)</div>
+                        <div className={`flex flex-wrap ${small?'gap-1':'gap-1.5'}`}>
+                            {history.map((h,i)=>(
+                                <div key={i} className={`${small?'w-11 h-11 text-[10px]':'w-14 h-14 text-xs'} rounded flex items-center justify-center font-bold ${
+                                    h.result.includes('プレイヤー')?'bg-red-600':h.result.includes('バンカー')?'bg-blue-600':'bg-yellow-600'
+                                } ${h.isLook?'opacity-50 border border-dashed border-white':''}`}>
+                                    <div className="text-center leading-tight">
+                                        <div className={`${small?'text-[8px]':'text-[9px]'} opacity-70`}>{h.pScore}-{h.bScore}</div>
+                                        {h.isLook?<div className={`${small?'text-[8px]':'text-[9px]'} text-cyan-300`}>LOOK</div>:
+                                        <div className={h.profit>=0?'text-green-300':'text-red-300'}>{h.profit>=0?'+':''}{fmtProfit(h.profit)}</div>}
+                                    </div>
+                                </div>
+                            ))}
                         </div>
-                        {stats.totalGames > 0 && (
-                            <div className="text-sm text-gray-300">
-                                総ゲーム数: {stats.totalGames} | 
-                                収支: <span className={stats.totalProfit >= 0 ? 'text-green-400' : 'text-red-400'}>
-                                    {stats.totalProfit >= 0 ? '+' : ''}{stats.totalProfit.toLocaleString()}円
-                                </span>
+                    </div>
+                )
+            );
+
+
+            // ===============================
+            // RENDER
+            // ===============================
+            return (
+                <div className="text-white">
+
+                    {/* ========== MOBILE LAYOUT (< md) ========== */}
+                    <div className="md:hidden flex flex-col h-screen">
+                        {/* Mobile Header */}
+                        <div className="flex-shrink-0 safe-top bg-green-900 bg-opacity-90 border-b border-green-700 px-3 pt-2 pb-2">
+                            <div className="flex items-center justify-between mb-1.5">
+                                <div className="text-xl font-bold text-yellow-300">¥{balance.toLocaleString()}</div>
+                                <div className="flex gap-1.5">
+                                    <button onClick={shuffleShoe} className={`text-xs px-2.5 py-1.5 rounded-lg font-bold ${needsShuffle?'bg-red-500 animate-pulse':'bg-gray-700'}`}>🔄</button>
+                                    <button onClick={()=>setShowBalanceModal(true)} className="bg-yellow-600 active:bg-yellow-800 px-2.5 py-1.5 rounded-lg font-bold text-xs">💰</button>
+                                    <button onClick={()=>setShowStatsModal(true)} className="bg-purple-600 active:bg-purple-800 px-2.5 py-1.5 rounded-lg font-bold text-xs">📊</button>
+                                    <button onClick={()=>setShowHistory(!showHistory)} className={`px-2.5 py-1.5 rounded-lg font-bold text-xs ${showHistory?'bg-gray-500':'bg-gray-700'}`}>📋</button>
+                                </div>
                             </div>
-                        )}
+                            <InfoBar compact />
+                            {needsShuffle && <div className="text-[11px] text-red-400 font-bold text-center mt-1">カットカード到達 → シャッフルしてください</div>}
+                        </div>
+
+                        {/* Mobile Main */}
+                        <div className="flex-1 overflow-y-auto px-3 py-2" style={{WebkitOverflowScrolling:'touch'}}>
+                            {/* Cards */}
+                            <div className="bg-green-700 rounded-xl p-3 mb-2 shadow-lg">
+                                <div className="flex items-center justify-center gap-2">
+                                    <div className="flex-1">
+                                        <div className="text-center mb-1">
+                                            <span className="text-xs font-bold text-red-300">PLAYER</span>
+                                            {playerCards.length>0&&<span className="ml-1.5 text-lg text-yellow-300 font-bold">{calculateScore(playerCards)}</span>}
+                                        </div>
+                                        <div className="flex justify-center gap-0.5">{playerCards.map((c,i)=><CardEl key={i} card={c}/>)}</div>
+                                    </div>
+                                    <div className="text-sm font-bold text-green-400 px-1">VS</div>
+                                    <div className="flex-1">
+                                        <div className="text-center mb-1">
+                                            <span className="text-xs font-bold text-blue-300">BANKER</span>
+                                            {bankerCards.length>0&&<span className="ml-1.5 text-lg text-yellow-300 font-bold">{calculateScore(bankerCards)}</span>}
+                                        </div>
+                                        <div className="flex justify-center gap-0.5">{bankerCards.map((c,i)=><CardEl key={i} card={c}/>)}</div>
+                                    </div>
+                                </div>
+                                {gameState!=='betting'&&<div className="text-center mt-2 text-base font-bold text-yellow-300">{message}</div>}
+                            </div>
+
+                            {/* Road Map */}
+                            {roadHistory.length>0&&(
+                                <div className="bg-gray-800 bg-opacity-60 rounded-xl p-2.5 mb-2">
+                                    <div className="flex items-center justify-between mb-1.5">
+                                        <div className="text-xs font-bold">罫線 <span className="text-gray-500">{roadHistory.length}G</span></div>
+                                        <div className="flex gap-2 text-[10px] text-gray-400">
+                                            <span className="flex items-center gap-0.5"><span style={{display:'inline-block',width:8,height:8,borderRadius:'50%',border:'2px solid #ef4444'}}></span>P</span>
+                                            <span className="flex items-center gap-0.5"><span style={{display:'inline-block',width:8,height:8,borderRadius:'50%',border:'2px solid #3b82f6'}}></span>B</span>
+                                            <span className="flex items-center gap-0.5"><span style={{display:'inline-block',width:8,height:8,borderRadius:'50%',background:'#22c55e'}}></span>T</span>
+                                        </div>
+                                    </div>
+                                    <RoadMapEl cellSize={20} gap={24}/>
+                                </div>
+                            )}
+
+                            {/* Betting */}
+                            {gameState==='betting'&&(
+                                <div className="mb-2">
+                                    <div className="text-center text-sm mb-2 text-gray-300">{message}</div>
+                                    <div className="mb-2"><BetInputs bet={bet} setBetDirect={setBetDirect}/></div>
+                                    <QuickBets/>
+                                </div>
+                            )}
+
+                            {/* History toggle */}
+                            {showHistory&&<div className="bg-gray-800 bg-opacity-50 rounded-xl p-3 mb-2"><HistoryPanel small/></div>}
+                        </div>
+
+                        {/* Mobile Bottom Bar */}
+                        <div className="flex-shrink-0 bg-gray-900 border-t border-gray-700 px-2 pt-2 safe-bottom">
+                            <div className="mb-1"><ActionButtons/></div>
+                        </div>
                     </div>
 
-                    {/* Balance Modal */}
-                    {showBalanceModal && (
-                        <div className="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50 p-4">
-                            <div className="bg-gray-800 rounded-2xl p-6 max-w-md w-full modal-content">
-                                <h2 className="text-2xl font-bold mb-4 text-center">💰 残高管理</h2>
-                                
-                                <div className="mb-6">
-                                    <div className="text-center mb-4">
-                                        <div className="text-sm text-gray-400 mb-1">現在の残高</div>
+                    {/* ========== PC LAYOUT (>= md) ========== */}
+                    <div className="hidden md:block min-h-screen bg-gradient-to-b from-green-800 to-green-900">
+                        {/* PC Header */}
+                        <div className="bg-green-900 bg-opacity-90 border-b border-green-700 px-8 py-4">
+                            <div className="max-w-7xl mx-auto">
+                                <div className="flex items-center justify-between mb-2">
+                                    <div className="flex items-center gap-5">
+                                        <h1 className="text-3xl font-bold">🎰 バカラ</h1>
                                         <div className="text-3xl font-bold text-yellow-300">¥{balance.toLocaleString()}</div>
                                     </div>
-                                    
-                                    <div className="text-sm text-gray-400 mb-2">クイック追加</div>
-                                    <div className="grid grid-cols-3 gap-2 mb-4">
-                                        {[1000, 5000, 10000, 50000, 100000, 500000].map(amount => (
-                                            <button
-                                                key={amount}
-                                                onClick={() => {
-                                                    addBalance(amount);
-                                                    setShowBalanceModal(false);
-                                                }}
-                                                className="bg-green-600 hover:bg-green-700 py-3 rounded-lg font-bold active:bg-green-800"
-                                            >
-                                                +{amount >= 10000 ? `${amount/10000}万` : amount >= 1000 ? `${amount/1000}k` : amount}
-                                            </button>
-                                        ))}
-                                    </div>
-
-                                    <div className="text-sm text-gray-400 mb-2">残高を設定</div>
-                                    <div className="flex gap-2 mb-4">
-                                        <input
-                                            type="number"
-                                            inputMode="numeric"
-                                            pattern="[0-9]*"
-                                            value={balanceInput}
-                                            onChange={(e) => setBalanceInput(e.target.value)}
-                                            placeholder="金額を入力"
-                                            className="flex-1 bg-gray-700 text-white px-4 py-3 rounded-lg text-center font-bold text-lg focus:outline-none focus:ring-2 focus:ring-yellow-500"
-                                        />
-                                        <button
-                                            onClick={setBalanceCustom}
-                                            className="bg-blue-600 hover:bg-blue-700 px-6 py-3 rounded-lg font-bold active:bg-blue-800"
-                                        >
-                                            設定
-                                        </button>
+                                    <div className="flex gap-3">
+                                        <button onClick={shuffleShoe} className={`text-base px-5 py-2.5 rounded-lg font-bold ${needsShuffle?'bg-red-500 animate-pulse':'bg-gray-700 hover:bg-gray-600'}`}>🔄 シャッフル</button>
+                                        <button onClick={()=>setShowBalanceModal(true)} className="bg-yellow-600 hover:bg-yellow-700 px-5 py-2.5 rounded-lg font-bold text-base">💰 残高管理</button>
+                                        <button onClick={()=>setShowStatsModal(true)} className="bg-purple-600 hover:bg-purple-700 px-5 py-2.5 rounded-lg font-bold text-base">📊 統計</button>
                                     </div>
                                 </div>
-
-                                <button
-                                    onClick={() => {
-                                        setShowBalanceModal(false);
-                                        setBalanceInput('');
-                                    }}
-                                    className="w-full bg-gray-600 hover:bg-gray-700 py-3 rounded-lg font-bold active:bg-gray-800"
-                                >
-                                    閉じる
-                                </button>
+                                <InfoBar/>
+                                {needsShuffle&&<div className="text-base text-red-400 font-bold text-center mt-1">カットカード到達 → シャッフルしてください</div>}
                             </div>
                         </div>
-                    )}
 
-                    {/* Statistics Modal */}
-                    {showStatsModal && (
-                        <div className="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50 p-4">
-                            <div className="bg-gray-800 rounded-2xl p-6 max-w-md w-full my-8 modal-content">
-                                <h2 className="text-2xl font-bold mb-6 text-center">📊 勝敗分析</h2>
-                                
-                                {stats.totalGames === 0 ? (
-                                    <div className="text-center text-gray-400 py-8">
-                                        まだゲームをプレイしていません
+                        {/* PC Main */}
+                        <div className="max-w-7xl mx-auto px-8 py-5">
+                            <div className="grid grid-cols-5 gap-5">
+                                {/* Left: Game (3 cols) */}
+                                <div className="col-span-3 space-y-5">
+                                    {/* Card Table */}
+                                    <div className="bg-green-700 rounded-2xl p-8 shadow-xl">
+                                        <div className="flex items-center justify-center gap-8">
+                                            <div className="flex-1">
+                                                <div className="text-center mb-3">
+                                                    <span className="text-lg font-bold text-red-300">PLAYER</span>
+                                                    {playerCards.length>0&&<span className="ml-3 text-5xl text-yellow-300 font-bold">{calculateScore(playerCards)}</span>}
+                                                </div>
+                                                <div className="flex justify-center gap-2">{playerCards.map((c,i)=><CardEl key={i} card={c} big/>)}</div>
+                                            </div>
+                                            <div className="text-2xl font-bold text-green-400">VS</div>
+                                            <div className="flex-1">
+                                                <div className="text-center mb-3">
+                                                    <span className="text-lg font-bold text-blue-300">BANKER</span>
+                                                    {bankerCards.length>0&&<span className="ml-3 text-5xl text-yellow-300 font-bold">{calculateScore(bankerCards)}</span>}
+                                                </div>
+                                                <div className="flex justify-center gap-2">{bankerCards.map((c,i)=><CardEl key={i} card={c} big/>)}</div>
+                                            </div>
+                                        </div>
+                                        {gameState!=='betting'&&<div className="text-center mt-5 text-2xl font-bold text-yellow-300">{message}</div>}
                                     </div>
-                                ) : (
-                                    <div className="space-y-6">
-                                        {/* Overall Stats */}
-                                        <div className="bg-gray-700 rounded-xl p-4">
-                                            <h3 className="text-lg font-bold mb-3 text-yellow-300">全体統計</h3>
-                                            <div className="space-y-2 text-sm">
-                                                <div className="flex justify-between">
-                                                    <span>総ゲーム数:</span>
-                                                    <span className="font-bold">{stats.totalGames}回</span>
-                                                </div>
-                                                <div className="flex justify-between">
-                                                    <span>総ベット額:</span>
-                                                    <span className="font-bold">¥{stats.totalBet.toLocaleString()}</span>
-                                                </div>
-                                                <div className="flex justify-between">
-                                                    <span>勝利時ベット合計:</span>
-                                                    <span className="font-bold text-green-400">¥{stats.totalWinBet.toLocaleString()}</span>
-                                                </div>
-                                                <div className="flex justify-between">
-                                                    <span>総収支:</span>
-                                                    <span className={`font-bold ${stats.totalProfit >= 0 ? 'text-green-400' : 'text-red-400'}`}>
-                                                        {stats.totalProfit >= 0 ? '+' : ''}¥{stats.totalProfit.toLocaleString()}
-                                                    </span>
-                                                </div>
-                                                <div className="flex justify-between">
-                                                    <span>平均ベット:</span>
-                                                    <span className="font-bold">¥{Math.round(stats.totalBet / stats.totalGames).toLocaleString()}</span>
-                                                </div>
-                                                <div className="flex justify-between">
-                                                    <span>投資効率:</span>
-                                                    <span className={`font-bold ${stats.totalProfit >= 0 ? 'text-green-400' : 'text-red-400'}`}>
-                                                        {((stats.totalProfit / stats.totalBet) * 100).toFixed(1)}%
-                                                    </span>
-                                                </div>
-                                            </div>
-                                        </div>
 
-                                        {/* Win/Loss Distribution */}
-                                        <div className="bg-gray-700 rounded-xl p-4">
-                                            <h3 className="text-lg font-bold mb-3 text-yellow-300">勝敗分布</h3>
-                                            <div className="space-y-3">
-                                                <div>
-                                                    <div className="flex justify-between text-sm mb-1">
-                                                        <span>🔴 プレイヤー勝利</span>
-                                                        <span className="font-bold">{stats.playerWins}回 ({((stats.playerWins / stats.totalGames) * 100).toFixed(1)}%)</span>
-                                                    </div>
-                                                    <div className="w-full bg-gray-600 rounded-full h-2">
-                                                        <div className="bg-red-500 h-2 rounded-full" style={{width: `${(stats.playerWins / stats.totalGames) * 100}%`}}></div>
-                                                    </div>
-                                                </div>
-                                                <div>
-                                                    <div className="flex justify-between text-sm mb-1">
-                                                        <span>🔵 バンカー勝利</span>
-                                                        <span className="font-bold">{stats.bankerWins}回 ({((stats.bankerWins / stats.totalGames) * 100).toFixed(1)}%)</span>
-                                                    </div>
-                                                    <div className="w-full bg-gray-600 rounded-full h-2">
-                                                        <div className="bg-blue-500 h-2 rounded-full" style={{width: `${(stats.bankerWins / stats.totalGames) * 100}%`}}></div>
-                                                    </div>
-                                                </div>
-                                                <div>
-                                                    <div className="flex justify-between text-sm mb-1">
-                                                        <span>🟡 タイ</span>
-                                                        <span className="font-bold">{stats.ties}回 ({((stats.ties / stats.totalGames) * 100).toFixed(1)}%)</span>
-                                                    </div>
-                                                    <div className="w-full bg-gray-600 rounded-full h-2">
-                                                        <div className="bg-yellow-500 h-2 rounded-full" style={{width: `${(stats.ties / stats.totalGames) * 100}%`}}></div>
-                                                    </div>
-                                                </div>
-                                            </div>
+                                    {/* Betting */}
+                                    {gameState==='betting'&&(
+                                        <div className="bg-gray-800 bg-opacity-40 rounded-2xl p-6 space-y-5">
+                                            <div className="text-center text-xl text-gray-300">{message}</div>
+                                            <BetInputs bet={bet} setBetDirect={setBetDirect} big/>
+                                            <QuickBets big/>
                                         </div>
+                                    )}
 
-                                        {/* Records */}
-                                        <div className="bg-gray-700 rounded-xl p-4">
-                                            <h3 className="text-lg font-bold mb-3 text-yellow-300">記録</h3>
-                                            <div className="space-y-2 text-sm">
-                                                <div className="flex justify-between">
-                                                    <span>最大勝利:</span>
-                                                    <span className="font-bold text-green-400">+¥{stats.maxWin.toLocaleString()}</span>
-                                                </div>
-                                                <div className="flex justify-between">
-                                                    <span>最大損失:</span>
-                                                    <span className="font-bold text-red-400">¥{stats.maxLoss.toLocaleString()}</span>
-                                                </div>
-                                                <div className="flex justify-between">
-                                                    <span>最大連勝:</span>
-                                                    <span className="font-bold text-green-400">{stats.maxWinStreak}回</span>
-                                                </div>
-                                                <div className="flex justify-between">
-                                                    <span>最大連敗:</span>
-                                                    <span className="font-bold text-red-400">{stats.maxLoseStreak}回</span>
-                                                </div>
-                                                <div className="flex justify-between">
-                                                    <span>倍掛け2連勝:</span>
-                                                    <span className="font-bold text-green-400">{stats.twoWinStreak}回</span>
-                                                </div>
-                                                <div className="flex justify-between">
-                                                    <span>現在の連勝/連敗:</span>
-                                                    <span className={`font-bold ${stats.currentStreak > 0 ? 'text-green-400' : stats.currentStreak < 0 ? 'text-red-400' : ''}`}>
-                                                        {stats.currentStreak > 0 ? `${stats.currentStreak}連勝` : stats.currentStreak < 0 ? `${Math.abs(stats.currentStreak)}連敗` : '0'}
-                                                    </span>
-                                                </div>
+                                    {/* Actions */}
+                                    <ActionButtons big/>
+                                </div>
+
+                                {/* Right: Road + History (2 cols) */}
+                                <div className="col-span-2 space-y-5">
+                                    {/* Road Map */}
+                                    <div className="bg-gray-800 bg-opacity-60 rounded-2xl p-5">
+                                        <div className="flex items-center justify-between mb-3">
+                                            <div className="text-base font-bold">罫線（大路） <span className="text-gray-500 ml-1">{roadHistory.length}G</span></div>
+                                            <div className="flex gap-3 text-sm text-gray-400">
+                                                <span className="flex items-center gap-1"><span style={{display:'inline-block',width:12,height:12,borderRadius:'50%',border:'2px solid #ef4444'}}></span>P</span>
+                                                <span className="flex items-center gap-1"><span style={{display:'inline-block',width:12,height:12,borderRadius:'50%',border:'2px solid #3b82f6'}}></span>B</span>
+                                                <span className="flex items-center gap-1"><span style={{display:'inline-block',width:12,height:12,borderRadius:'50%',background:'#22c55e'}}></span>T</span>
                                             </div>
                                         </div>
+                                        <RoadMapEl cellSize={28} gap={34}/>
                                     </div>
-                                )}
 
-                                <div className="grid grid-cols-2 gap-3 mt-6">
-                                    <button
-                                        onClick={resetStats}
-                                        className="bg-red-600 hover:bg-red-700 active:bg-red-800 py-3 rounded-lg font-bold"
-                                    >
-                                        リセット
-                                    </button>
-                                    <button
-                                        onClick={() => setShowStatsModal(false)}
-                                        className="bg-gray-600 hover:bg-gray-700 active:bg-gray-800 py-3 rounded-lg font-bold"
-                                    >
-                                        閉じる
-                                    </button>
+                                    {/* History */}
+                                    <div className="bg-gray-800 bg-opacity-50 rounded-2xl p-5 max-h-[500px] overflow-y-auto">
+                                        <HistoryPanel/>
+                                        {history.length===0&&<div className="text-center text-gray-500 text-base py-6">履歴なし</div>}
+                                    </div>
                                 </div>
                             </div>
                         </div>
-                    )}
-
-                    {/* Game Table */}
-                    <div className="bg-green-700 rounded-2xl p-6 mb-6 shadow-2xl">
-                        {/* Banker */}
-                        <div className="mb-8">
-                            <div className="text-center mb-3">
-                                <span className="text-xl font-bold">バンカー</span>
-                                {bankerCards.length > 0 && (
-                                    <span className="ml-3 text-2xl text-yellow-300">
-                                        {calculateScore(bankerCards)}
-                                    </span>
-                                )}
-                            </div>
-                            <div className="flex justify-center gap-2">
-                                {bankerCards.map((card, i) => (
-                                    <Card key={i} card={card} />
-                                ))}
-                            </div>
-                        </div>
-
-                        {/* VS */}
-                        <div className="text-center text-2xl font-bold mb-8">VS</div>
-
-                        {/* Player */}
-                        <div>
-                            <div className="text-center mb-3">
-                                <span className="text-xl font-bold">プレイヤー</span>
-                                {playerCards.length > 0 && (
-                                    <span className="ml-3 text-2xl text-yellow-300">
-                                        {calculateScore(playerCards)}
-                                    </span>
-                                )}
-                            </div>
-                            <div className="flex justify-center gap-2">
-                                {playerCards.map((card, i) => (
-                                    <Card key={i} card={card} />
-                                ))}
-                            </div>
-                        </div>
-
-                        {/* Result Message */}
-                        {gameState !== 'betting' && (
-                            <div className="text-center mt-6 text-xl font-bold text-yellow-300">
-                                {message}
-                            </div>
-                        )}
                     </div>
 
-                    {/* Betting Area */}
-                    {gameState === 'betting' && (
-                        <div className="mb-6">
-                            <div className="text-center mb-4 text-lg">{message}</div>
-                            
-                            {/* Bet Display with Input */}
-                            <div className="grid grid-cols-3 gap-3 mb-4">
-                                <div className="bg-red-600 p-3 rounded-xl text-center">
-                                    <div className="text-sm mb-2">プレイヤー</div>
-                                    <input
-                                        type="text"
-                                        inputMode="numeric"
-                                        pattern="[0-9,]*"
-                                        value={bet.player ? formatNumberWithCommas(bet.player) : ''}
-                                        onChange={(e) => setBetDirect('player', e.target.value)}
-                                        placeholder="0"
-                                        className="w-full bg-red-700 text-white text-center text-lg font-bold py-2 rounded-lg border-2 border-red-400 focus:outline-none focus:border-white"
-                                    />
-                                    <div className="text-xs text-red-200 mt-1">2倍</div>
-                                </div>
-                                <div className="bg-blue-600 p-3 rounded-xl text-center">
-                                    <div className="text-sm mb-2">バンカー</div>
-                                    <input
-                                        type="text"
-                                        inputMode="numeric"
-                                        pattern="[0-9,]*"
-                                        value={bet.banker ? formatNumberWithCommas(bet.banker) : ''}
-                                        onChange={(e) => setBetDirect('banker', e.target.value)}
-                                        placeholder="0"
-                                        className="w-full bg-blue-700 text-white text-center text-lg font-bold py-2 rounded-lg border-2 border-blue-400 focus:outline-none focus:border-white"
-                                    />
-                                    <div className="text-xs text-blue-200 mt-1">2倍 (6は1.5倍)</div>
-                                </div>
-                                <div className="bg-yellow-600 p-3 rounded-xl text-center">
-                                    <div className="text-sm mb-2">タイ</div>
-                                    <input
-                                        type="text"
-                                        inputMode="numeric"
-                                        pattern="[0-9,]*"
-                                        value={bet.tie ? formatNumberWithCommas(bet.tie) : ''}
-                                        onChange={(e) => setBetDirect('tie', e.target.value)}
-                                        placeholder="0"
-                                        className="w-full bg-yellow-700 text-white text-center text-lg font-bold py-2 rounded-lg border-2 border-yellow-400 focus:outline-none focus:border-white"
-                                    />
-                                    <div className="text-xs text-yellow-200 mt-1">9倍</div>
-                                </div>
-                            </div>
-
-                            {/* Quick Chip Selection */}
-                            <div className="mb-3 text-center text-sm text-gray-300">クイックベット</div>
-                            <div className="grid grid-cols-4 gap-2 mb-4">
-                                {[5000, 10000, 50000, 100000].map(amount => (
-                                    <button
-                                        key={`p-${amount}`}
-                                        onClick={() => addBet('player', amount)}
-                                        className="bg-red-500 hover:bg-red-600 active:bg-red-700 py-2 px-1 rounded-lg font-bold text-sm"
-                                    >
-                                        P +{amount >= 10000 ? `${amount/10000}万` : `${amount/1000}k`}
-                                    </button>
-                                ))}
-                                {[5000, 10000, 50000, 100000].map(amount => (
-                                    <button
-                                        key={`b-${amount}`}
-                                        onClick={() => addBet('banker', amount)}
-                                        className="bg-blue-500 hover:bg-blue-600 active:bg-blue-700 py-2 px-1 rounded-lg font-bold text-sm"
-                                    >
-                                        B +{amount >= 10000 ? `${amount/10000}万` : `${amount/1000}k`}
-                                    </button>
-                                ))}
-                                {[5000, 10000, 50000, 100000].map(amount => (
-                                    <button
-                                        key={`t-${amount}`}
-                                        onClick={() => addBet('tie', amount)}
-                                        className="bg-yellow-500 hover:bg-yellow-600 active:bg-yellow-700 py-2 px-1 rounded-lg font-bold text-sm"
-                                    >
-                                        T +{amount >= 10000 ? `${amount/10000}万` : `${amount/1000}k`}
-                                    </button>
-                                ))}
-                            </div>
-
-                            {/* Action Buttons */}
-                            <div className="grid grid-cols-2 gap-3">
-                                <button
-                                    onClick={clearBets}
-                                    className="bg-gray-600 hover:bg-gray-700 active:bg-gray-800 py-4 rounded-lg font-bold text-lg"
-                                >
-                                    クリア
-                                </button>
-                                <button
-                                    onClick={dealCards}
-                                    className="bg-green-500 hover:bg-green-600 active:bg-green-700 py-4 rounded-lg font-bold text-lg"
-                                >
-                                    ディール
-                                </button>
-                            </div>
+                    {/* ===== Modals (shared) ===== */}
+                    <ModalShell show={showBalanceModal}>
+                        <div className="text-center mb-4">
+                            <div className="text-xs text-gray-400">残高</div>
+                            <div className="text-2xl font-bold text-yellow-300">¥{balance.toLocaleString()}</div>
                         </div>
-                    )}
-
-                    {/* New Game Button */}
-                    {gameState === 'result' && (
-                        <div className="mb-6">
-                            <button
-                                onClick={newGame}
-                                className="w-full bg-green-500 hover:bg-green-600 active:bg-green-700 py-4 rounded-lg font-bold text-xl"
-                            >
-                                新しいゲーム
-                            </button>
+                        <div className="grid grid-cols-3 gap-2 mb-4">
+                            {[1000,5000,10000,50000,100000,500000].map(a=>(
+                                <button key={a} onClick={()=>addBalance(a)} className="bg-green-600 active:bg-green-800 hover:bg-green-700 py-3 rounded-xl font-bold text-sm">
+                                    +{a>=10000?`${a/10000}万`:a>=1000?`${a/1000}k`:a}
+                                </button>
+                            ))}
                         </div>
-                    )}
+                        <div className="flex gap-2 mb-4">
+                            <input type="text" inputMode="numeric" pattern="[0-9,]*" value={balanceInput}
+                                onChange={(e)=>{const r=removeCommas(e.target.value).replace(/[^0-9]/g,'');setBalanceInput(r?formatNumberWithCommas(parseInt(r)):'');}}
+                                placeholder="金額を入力"
+                                className="flex-1 bg-gray-700 text-white px-3 py-3 rounded-xl text-center font-bold text-lg focus:outline-none focus:ring-2 focus:ring-yellow-500"/>
+                            <button onClick={setBalanceCustom} className="bg-blue-600 active:bg-blue-800 hover:bg-blue-700 px-5 py-3 rounded-xl font-bold">設定</button>
+                        </div>
+                        <button onClick={()=>{setShowBalanceModal(false);setBalanceInput('');}} className="w-full bg-gray-600 active:bg-gray-800 hover:bg-gray-700 py-3 rounded-xl font-bold">閉じる</button>
+                    </ModalShell>
 
-                    {/* History */}
-                    {history.length > 0 && (
-                        <div className="bg-gray-800 bg-opacity-50 rounded-xl p-4">
-                            <h3 className="text-lg font-bold mb-3">履歴</h3>
-                            <div className="flex gap-2 overflow-x-auto pb-2">
-                                {history.map((h, i) => (
-                                    <div
-                                        key={i}
-                                        className={`flex-shrink-0 w-16 h-16 rounded-lg flex items-center justify-center font-bold text-sm ${
-                                            h.result.includes('プレイヤー') ? 'bg-red-600' :
-                                            h.result.includes('バンカー') ? 'bg-blue-600' : 'bg-yellow-600'
-                                        }`}
-                                    >
-                                        <div className="text-center">
-                                            <div className="text-xs">{h.pScore}-{h.bScore}</div>
-                                            <div className={h.profit >= 0 ? 'text-green-300' : 'text-red-300'}>
-                                                {h.profit >= 0 ? '+' : ''}{h.profit}
-                                            </div>
-                                        </div>
+                    <ModalShell show={showStatsModal}>
+                        <h2 className="text-lg font-bold mb-4 text-center">📊 勝敗分析</h2>
+                        {stats.totalGames===0?<div className="text-center text-gray-400 py-6">まだプレイしていません</div>:(
+                            <div className="space-y-4">
+                                <div className="bg-gray-700 rounded-xl p-3">
+                                    <div className="text-sm font-bold mb-2 text-yellow-300">全体統計</div>
+                                    <div className="grid grid-cols-2 gap-x-4 gap-y-1 text-xs">
+                                        <div className="flex justify-between"><span>総ゲーム</span><span className="font-bold">{stats.totalGames}回</span></div>
+                                        <div className="flex justify-between"><span>総ベット</span><span className="font-bold">¥{stats.totalBet.toLocaleString()}</span></div>
+                                        <div className="flex justify-between"><span>総収支</span><span className={`font-bold ${stats.totalProfit>=0?'text-green-400':'text-red-400'}`}>{stats.totalProfit>=0?'+':''}¥{stats.totalProfit.toLocaleString()}</span></div>
+                                        <div className="flex justify-between"><span>効率</span><span className={`font-bold ${stats.totalProfit>=0?'text-green-400':'text-red-400'}`}>{stats.totalBet>0?((stats.totalProfit/stats.totalBet)*100).toFixed(1):0}%</span></div>
                                     </div>
-                                ))}
+                                </div>
+                                <div className="bg-gray-700 rounded-xl p-3">
+                                    <div className="text-sm font-bold mb-2 text-yellow-300">勝敗分布</div>
+                                    {[{l:'プレイヤー',v:stats.playerWins,c:'red'},{l:'バンカー',v:stats.bankerWins,c:'blue'},{l:'タイ',v:stats.ties,c:'yellow'}].map(r=>(
+                                        <div key={r.l} className="mb-1.5">
+                                            <div className="flex justify-between text-xs mb-0.5"><span>{r.l}</span><span className="font-bold">{r.v}回 ({((r.v/stats.totalGames)*100).toFixed(1)}%)</span></div>
+                                            <div className="w-full bg-gray-600 rounded-full h-1.5"><div className={`bg-${r.c}-500 h-1.5 rounded-full`} style={{width:`${(r.v/stats.totalGames)*100}%`}}></div></div>
+                                        </div>
+                                    ))}
+                                </div>
+                                <div className="bg-gray-700 rounded-xl p-3">
+                                    <div className="text-sm font-bold mb-2 text-yellow-300">記録</div>
+                                    <div className="grid grid-cols-2 gap-x-4 gap-y-1 text-xs">
+                                        <div className="flex justify-between"><span>最大勝利</span><span className="font-bold text-green-400">+¥{stats.maxWin.toLocaleString()}</span></div>
+                                        <div className="flex justify-between"><span>最大損失</span><span className="font-bold text-red-400">¥{stats.maxLoss.toLocaleString()}</span></div>
+                                        <div className="flex justify-between"><span>最大連勝</span><span className="font-bold text-green-400">{stats.maxWinStreak}回</span></div>
+                                        <div className="flex justify-between"><span>最大連敗</span><span className="font-bold text-red-400">{stats.maxLoseStreak}回</span></div>
+                                        <div className="flex justify-between"><span>倍掛2連勝</span><span className="font-bold text-green-400">{stats.twoWinStreak}回</span></div>
+                                        <div className="flex justify-between"><span>現在</span><span className={`font-bold ${stats.currentStreak>0?'text-green-400':stats.currentStreak<0?'text-red-400':''}`}>{stats.currentStreak>0?`${stats.currentStreak}連勝`:stats.currentStreak<0?`${Math.abs(stats.currentStreak)}連敗`:'-'}</span></div>
+                                    </div>
+                                </div>
                             </div>
+                        )}
+                        <div className="grid grid-cols-2 gap-3 mt-4">
+                            <button onClick={resetStats} className="bg-red-600 active:bg-red-800 hover:bg-red-700 py-2.5 rounded-xl font-bold text-sm">リセット</button>
+                            <button onClick={()=>setShowStatsModal(false)} className="bg-gray-600 active:bg-gray-800 hover:bg-gray-700 py-2.5 rounded-xl font-bold text-sm">閉じる</button>
                         </div>
-                    )}
+                    </ModalShell>
                 </div>
             );
         };
