@@ -368,6 +368,21 @@
                             {needsShuffle && <div className="text-[11px] text-red-400 font-bold text-center mt-1">カットカード到達 → シャッフルしてください</div>}
                         </div>
 
+                        {/* Mobile Road Map (fixed, always visible) */}
+                        {roadHistory.length>0&&(
+                            <div className="flex-shrink-0 bg-gray-800 bg-opacity-60 px-3 py-2 border-b border-gray-700">
+                                <div className="flex items-center justify-between mb-1">
+                                    <div className="text-xs font-bold">罫線 <span className="text-gray-500">{roadHistory.length}G</span></div>
+                                    <div className="flex gap-2 text-[10px] text-gray-400">
+                                        <span className="flex items-center gap-0.5"><span style={{display:'inline-block',width:8,height:8,borderRadius:'50%',border:'2px solid #ef4444'}}></span>P</span>
+                                        <span className="flex items-center gap-0.5"><span style={{display:'inline-block',width:8,height:8,borderRadius:'50%',border:'2px solid #3b82f6'}}></span>B</span>
+                                        <span className="flex items-center gap-0.5"><span style={{display:'inline-block',width:8,height:8,borderRadius:'50%',background:'#22c55e'}}></span>T</span>
+                                    </div>
+                                </div>
+                                <RoadMapEl cellSize={20} gap={24} scrollRef={roadScrollRefMobile}/>
+                            </div>
+                        )}
+
                         {/* Mobile Main */}
                         <div className="flex-1 overflow-y-auto px-3 py-2" style={{WebkitOverflowScrolling:'touch'}}>
                             {/* Cards */}
@@ -391,21 +406,6 @@
                                 </div>
                                 {gameState!=='betting'&&<div className="text-center mt-2 text-base font-bold text-yellow-300">{message}</div>}
                             </div>
-
-                            {/* Road Map */}
-                            {roadHistory.length>0&&(
-                                <div className="bg-gray-800 bg-opacity-60 rounded-xl p-2.5 mb-2">
-                                    <div className="flex items-center justify-between mb-1.5">
-                                        <div className="text-xs font-bold">罫線 <span className="text-gray-500">{roadHistory.length}G</span></div>
-                                        <div className="flex gap-2 text-[10px] text-gray-400">
-                                            <span className="flex items-center gap-0.5"><span style={{display:'inline-block',width:8,height:8,borderRadius:'50%',border:'2px solid #ef4444'}}></span>P</span>
-                                            <span className="flex items-center gap-0.5"><span style={{display:'inline-block',width:8,height:8,borderRadius:'50%',border:'2px solid #3b82f6'}}></span>B</span>
-                                            <span className="flex items-center gap-0.5"><span style={{display:'inline-block',width:8,height:8,borderRadius:'50%',background:'#22c55e'}}></span>T</span>
-                                        </div>
-                                    </div>
-                                    <RoadMapEl cellSize={20} gap={24} scrollRef={roadScrollRefMobile}/>
-                                </div>
-                            )}
 
                             {/* Betting */}
                             {gameState==='betting'&&(
