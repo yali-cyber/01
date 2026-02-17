@@ -93,7 +93,8 @@
             const [shoeHandCount, setShoeHandCount] = useState(0);
             const [needsShuffle, setNeedsShuffle] = useState(false);
             const [showHistory, setShowHistory] = useState(false);
-            const roadScrollRef = useRef(null);
+            const roadScrollRefMobile = useRef(null);
+            const roadScrollRefPC = useRef(null);
             const shoeRef = useRef([]);
 
             const DECK_COUNT = 8;
@@ -221,7 +222,10 @@
                 return {grid,totalCols:maxCol+1,ROWS};
             },[roadHistory]);
 
-            useEffect(()=>{if(roadScrollRef.current)roadScrollRef.current.scrollLeft=roadScrollRef.current.scrollWidth;},[roadHistory]);
+            useEffect(()=>{
+                if(roadScrollRefMobile.current)roadScrollRefMobile.current.scrollLeft=roadScrollRefMobile.current.scrollWidth;
+                if(roadScrollRefPC.current)roadScrollRefPC.current.scrollLeft=roadScrollRefPC.current.scrollWidth;
+            },[roadHistory]);
 
             const fmtProfit = (p) => (p>=10000||p<=-10000)?`${(p/10000).toFixed(1)}万`:p.toLocaleString();
 
@@ -237,8 +241,8 @@
                 </div>
             );
 
-            const RoadMapEl = ({cellSize=20, gap=24}) => (
-                <div ref={roadScrollRef} className="overflow-x-auto hide-scrollbar" style={{WebkitOverflowScrolling:'touch'}}>
+            const RoadMapEl = ({cellSize=20, gap=24, scrollRef}) => (
+                <div ref={scrollRef} className="overflow-x-auto hide-scrollbar" style={{WebkitOverflowScrolling:'touch'}}>
                     <table style={{borderCollapse:'collapse'}}>
                         <tbody>
                             {Array.from({length:bigRoad.ROWS},(_,row)=>(
@@ -399,7 +403,7 @@
                                             <span className="flex items-center gap-0.5"><span style={{display:'inline-block',width:8,height:8,borderRadius:'50%',background:'#22c55e'}}></span>T</span>
                                         </div>
                                     </div>
-                                    <RoadMapEl cellSize={20} gap={24}/>
+                                    <RoadMapEl cellSize={20} gap={24} scrollRef={roadScrollRefMobile}/>
                                 </div>
                             )}
 
@@ -495,7 +499,7 @@
                                                 <span className="flex items-center gap-1"><span style={{display:'inline-block',width:12,height:12,borderRadius:'50%',background:'#22c55e'}}></span>T</span>
                                             </div>
                                         </div>
-                                        <RoadMapEl cellSize={28} gap={34}/>
+                                        <RoadMapEl cellSize={28} gap={34} scrollRef={roadScrollRefPC}/>
                                     </div>
 
                                     {/* History */}
