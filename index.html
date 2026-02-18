@@ -110,7 +110,7 @@
             };
             if (shoeRef.current.length===0) shoeRef.current=createShoe();
 
-            const shuffleShoe = () => { shoeRef.current=createShoe(); setShoeHandCount(0); setNeedsShuffle(false); setMessage('新しいシューをシャッフルしました'); };
+            const shuffleShoe = () => { shoeRef.current=createShoe(); setShoeHandCount(0); setNeedsShuffle(false); setRoadHistory([]); setMessage('新しいシューをシャッフルしました'); };
             const getCardValue = (r) => { if(r==='A')return 1; if(['J','Q','K','10'].includes(r))return 0; return parseInt(r); };
             const calculateScore = (cards) => cards.reduce((s,c)=>s+getCardValue(c.rank),0)%10;
             const drawCard = () => { if(shoeRef.current.length===0)shoeRef.current=createShoe(); return shoeRef.current.pop(); };
@@ -223,9 +223,12 @@
             },[roadHistory]);
 
             useEffect(()=>{
-                if(roadScrollRefMobile.current)roadScrollRefMobile.current.scrollLeft=roadScrollRefMobile.current.scrollWidth;
-                if(roadScrollRefPC.current)roadScrollRefPC.current.scrollLeft=roadScrollRefPC.current.scrollWidth;
-            },[roadHistory]);
+                const t=setTimeout(()=>{
+                    if(roadScrollRefMobile.current)roadScrollRefMobile.current.scrollLeft=roadScrollRefMobile.current.scrollWidth;
+                    if(roadScrollRefPC.current)roadScrollRefPC.current.scrollLeft=roadScrollRefPC.current.scrollWidth;
+                },50);
+                return ()=>clearTimeout(t);
+            },[roadHistory, gameState, bet]);
 
             const fmtProfit = (p) => (p>=10000||p<=-10000)?`${(p/10000).toFixed(1)}万`:p.toLocaleString();
 
