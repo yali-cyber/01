@@ -167,6 +167,7 @@
                 setShoeHandCount(0);
                 setNeedsShuffle(false);
                 setShoeStats({ playerWins: 0, bankerWins: 0, ties: 0 });
+                setRoadHistory([]);
                 setMessage('新しいシューをシャッフルしました');
             };
             const getCardValue = (r) => { if (r === 'A') return 1; if (['J', 'Q', 'K', '10'].includes(r)) return 0; return parseInt(r); };
